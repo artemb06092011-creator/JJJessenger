@@ -1,441 +1,196 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>J Messenger</title>
 
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
-
 <style>
 
-*{
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
-
-
 body{
-
 margin:0;
-
-height:100vh;
-
-background:#080d1d;
-
+font-family:Arial,sans-serif;
+background:#0f172a;
 color:white;
-
-overflow:hidden;
-
-}
-
-
-.hidden{
-
-display:none!important;
-
-}
-
-
-
-input{
-
-width:100%;
-
-padding:14px;
-
-margin:8px 0;
-
-background:#0c1328;
-
-border:1px solid #33406b;
-
-border-radius:14px;
-
-color:white;
-
-}
-
-
-
-button{
-
-width:100%;
-
-padding:14px;
-
-margin-top:10px;
-
-border:0;
-
-border-radius:14px;
-
-background:linear-gradient(135deg,#6577ff,#a044ff);
-
-color:white;
-
-font-weight:bold;
-
-cursor:pointer;
-
-}
-
-
-
-.avatar{
-
-width:60px;
-
-height:60px;
-
-border-radius:50%;
-
-background:linear-gradient(135deg,#6577ff,#a044ff);
-
 display:flex;
-
-align-items:center;
-
 justify-content:center;
-
-font-size:25px;
-
-font-weight:bold;
-
-background-size:cover;
-
-background-position:center;
-
-}
-
-
-
-
-
-#login{
-
+align-items:center;
 height:100vh;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
 }
-
-
 
 .box{
-
-background:#11182d;
-
-padding:30px;
-
-width:350px;
-
-border-radius:25px;
-
+width:90%;
+max-width:400px;
+background:#1e293b;
+padding:20px;
+border-radius:20px;
+text-align:center;
 }
-
-
 
 .logo{
-
-font-size:70px;
-
-text-align:center;
-
-color:#6577ff;
-
+font-size:80px;
+font-weight:bold;
+color:#60a5fa;
 }
 
-
-
-
-
-#home{
-
-height:100vh;
-
-background:#0d1328;
-
-}
-
-
-
-.top{
-
-height:80px;
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-padding:15px;
-
-border-bottom:1px solid #273158;
-
-}
-
-
-
-.user{
-
-display:flex;
-
-align-items:center;
-
-gap:15px;
-
-padding:15px;
-
-margin:12px;
-
-background:#151d38;
-
-border-radius:18px;
-
-}
-
-
-
-.status{
-
-width:12px;
-
-height:12px;
-
-border-radius:50%;
-
-margin-left:auto;
-
-background:#3cff75;
-
-}
-
-
-
-
-
-
-#chatScreen{
-
-height:100vh;
-
-display:flex;
-
-flex-direction:column;
-
-}
-
-
-
-.header{
-
-height:75px;
-
-display:flex;
-
-align-items:center;
-
-gap:15px;
-
-padding:15px;
-
-border-bottom:1px solid #273158;
-
-}
-
-
-
-.messages{
-
-flex:1;
-
-overflow:auto;
-
-padding:20px;
-
-}
-
-
-
-.msg{
-
-background:#6577ff;
-
+input{
+width:100%;
 padding:12px;
-
-border-radius:15px;
-
-max-width:70%;
-
-margin:10px 0 10px auto;
-
+margin:10px 0;
+border:none;
+border-radius:10px;
+box-sizing:border-box;
 }
 
-
-
-.time{
-
-font-size:11px;
-
-opacity:.7;
-
-}
-
-
-
-.send{
-
-display:flex;
-
-gap:10px;
-
+button{
+width:100%;
 padding:12px;
-
-background:#0d1328;
-
+border:none;
+border-radius:10px;
+background:#3b82f6;
+color:white;
+cursor:pointer;
 }
 
-
-.send button{
-
-width:60px;
-
+.hidden{
+display:none;
 }
-
-
-
-
-#profile{
-
-height:100vh;
-
-background:#11182d;
-
-padding:25px;
-
-}
-
-
-
-.big{
-
-width:130px;
-
-height:130px;
-
-font-size:50px;
-
-}
-
 
 </style>
-
-
 </head>
-
-
 <body>
-
-
 
 <div id="login">
 
+<div class="box">
+
+<div class="logo">J</div>
+
+<h2>J Messenger</h2>
+
+<p>Соединяя людей мгновенно</p>
+
+<p>
+Для входа или регистрации аккаунта
+подтвердите свою электронную почту.
+</p>
+
+<input
+id="email"
+type="email"
+placeholder="Электронная почта"
+>
+
+<button onclick="sendLink()">
+Продолжить
+</button>
+
+</div>
+
+</div>
+
+<div id="verify" class="hidden">
 
 <div class="box">
 
+<h2>Письмо отправлено</h2>
 
-<div class="logo">
+<p id="verifyText"></p>
 
-J
+<button onclick="checkLogin()">
+Я подтвердил вход
+</button>
 
 </div>
 
+</div>
 
-<h2>
+<div id="createProfile" class="hidden">
 
-J Messenger
+<div class="box">
 
-</h2>
+<h2>Создание профиля</h2>
 
-
+<input id="name" placeholder="Имя">
 
 <input id="username" placeholder="Username">
 
-
-<input id="password" type="password" placeholder="Пароль">
-
-
-
-<button onclick="register()">
-
-Регистрация
-
+<button onclick="createProfile()">
+Создать профиль
 </button>
-
-
-
-<button onclick="loginUser()">
-
-Войти
-
-</button>
-
 
 </div>
 
-
 </div>
-
-
-
-
 
 <div id="home" class="hidden">
 
+<div class="box">
 
-<div class="top">
+<h2>Главная</h2>
 
-<b>
+<input
+id="search"
+placeholder="Поиск пользователей"
+>
 
-J Messenger
-
-</b>
-
-
-<div class="avatar" id="myAvatar" onclick="openProfile()">
-
-J
-
-</div>
-
+<button onclick="openSettings()">
+Настройки
+</button>
 
 </div>
 
+</div>
 
+<div id="settings" class="hidden">
 
-<input id="search" placeholder="Поиск username" oninput="searchUsers()">
+<div class="box">
 
+<h2>Настройки</h2>
 
+<button>
+📷 Изменить фото профиля
+</button>
 
-<div id="users"></div>
+<button>
+✏️ Изменить имя
+</button>
 
+<button onclick="logout()">
+🚪 Выйти из аккаунта
+</button>
+
+<button onclick="backHome()">
+Назад
+</button>
 
 </div>
-<script>
 
+</div>
+  <script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getAuth,
+sendSignInLinkToEmail,
+isSignInWithEmailLink,
+signInWithEmailLink,
+signOut
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+getFirestore,
+doc,
+setDoc,
+getDoc,
+collection,
+getDocs
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
 
@@ -445,618 +200,202 @@ authDomain: "jmessenger-519cf.firebaseapp.com",
 
 projectId: "jmessenger-519cf",
 
-storageBucket: "jmessenger-519cf.firebasestorage.app",
+storageBucket:
+"jmessenger-519cf.firebasestorage.app",
 
-messagingSenderId: "339570238049",
+messagingSenderId:
+"339570238049",
 
-appId: "1:339570238049:web:01d8a317f99314ddefc020"
+appId:
+"1:339570238049:web:01d8a317f99314ddefc020"
 
 };
 
+const app =
+initializeApp(firebaseConfig);
 
+const auth =
+getAuth(app);
 
-firebase.initializeApp(firebaseConfig);
+const db =
+getFirestore(app);
+    window.sendLink = async function(){
 
+const email =
+document.getElementById("email").value;
 
-const auth = firebase.auth();
+const actionCodeSettings = {
 
-const db = firebase.firestore();
+url:
+window.location.origin +
+window.location.pathname,
 
+handleCodeInApp:true
 
+};
 
-let me=null;
-
-let chatUser=null;
-
-
-
-
-
-
-function register(){
-
-
-let username =
-document.getElementById("username").value.trim();
-
-
-
-let password =
-document.getElementById("password").value;
-
-
-
-if(!username || !password){
-
-alert("Заполни поля");
-
-return;
-
-}
-
-
-
-let email =
-username+"@j-messenger.app";
-
-
-
-auth.createUserWithEmailAndPassword(
+await sendSignInLinkToEmail(
+auth,
 email,
-password
-)
-
-
-.then(result=>{
-
-
-me=result.user;
-
-
-
-return db.collection("users")
-.doc(me.uid)
-.set({
-
-username:username,
-
-name:username,
-
-avatar:"",
-
-status:"online"
-
-});
-
-
-
-})
-
-
-.then(()=>{
-
-
-openHome();
-
-
-})
-
-
-.catch(error=>{
-
-
-alert(error.message);
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-function loginUser(){
-
-
-let username =
-document.getElementById("username").value.trim();
-
-
-
-let password =
-document.getElementById("password").value;
-
-
-
-let email =
-username+"@j-messenger.app";
-
-
-
-auth.signInWithEmailAndPassword(
-email,
-password
-)
-
-
-.then(result=>{
-
-
-me=result.user;
-
-
-openHome();
-
-
-
-})
-
-
-.catch(error=>{
-
-
-alert("Ошибка входа: "+error.message);
-
-
-
-});
-
-
-}
-
-
-
-
-
-
-
-
-
-function openHome(){
-
-
-document.getElementById("login")
+actionCodeSettings
+);
+
+localStorage.setItem(
+"emailForSignIn",
+email
+);
+
+document
+.getElementById("login")
 .classList.add("hidden");
 
-
-document.getElementById("home")
+document
+.getElementById("verify")
 .classList.remove("hidden");
 
-
-
-loadProfile();
-
-loadUsers();
-
-
-}
-
-
-
-
-
-
-
-
-
-
-function loadProfile(){
-
-
-db.collection("users")
-.doc(me.uid)
-.get()
-
-.then(doc=>{
-
-
-let u=doc.data();
-
-
-
-document.getElementById("myAvatar")
-.innerText=u.name[0];
-
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-
-function loadUsers(){
-
-
-let box =
-document.getElementById("users");
-
-
-box.innerHTML="";
-
-
-
-db.collection("users")
-.get()
-
-.then(snapshot=>{
-
-
-snapshot.forEach(doc=>{
-
-
-if(doc.id===me.uid)return;
-
-
-
-let u=doc.data();
-
-
-
-let div=document.createElement("div");
-
-
-div.className="user";
-
-
-
-div.innerHTML=`
-
-<div class="avatar">
-
-${u.name[0]}
-
-</div>
-
-
-<div>
-
-<b>${u.name}</b>
-
-<br>
-
-@${u.username}
-
-</div>
-
-
-<span class="status"></span>
-
-`;
-
-
-
-div.onclick=()=>openChat(doc.id,u);
-
-
-
-box.appendChild(div);
-
-
-
-});
-
-
-
-});
-
-
-}
-
-
-
-
-
-
-
-
-
-function searchUsers(){
-
-
-let value=document
-.getElementById("search")
-.value
-.toLowerCase();
-
-
-
-let box=document.getElementById("users");
-
-
-box.innerHTML="";
-
-
-
-db.collection("users")
-.get()
-
-.then(snapshot=>{
-
-
-snapshot.forEach(doc=>{
-
-
-let u=doc.data();
-
-
-
-if(doc.id!==me.uid &&
-
-u.username
-.toLowerCase()
-.includes(value)
-
-){
-
-
-
-let div=document.createElement("div");
-
-
-div.className="user";
-
-
-
-div.innerHTML=`
-
-<div class="avatar">
-
-${u.name[0]}
-
-</div>
-
-
-<b>@${u.username}</b>
-
-`;
-
-
-
-div.onclick=()=>openChat(doc.id,u);
-
-
-
-box.appendChild(div);
-
-
-
-}
-
-
-
-});
-
-
-
-});
-
-
-}
-
-
-
-
-
-
-
-
-
-
-function openChat(id,u){
-
-
-chatUser=id;
-
-
-document.getElementById("home")
-.classList.add("hidden");
-
-
-document.getElementById("chatScreen")
-.classList.remove("hidden");
-
-
-
-document.getElementById("friendName")
-.innerText=u.name;
-
-
-
-document.getElementById("friendAvatar")
-.innerText=u.name[0];
-
-
-
-listenMessages();
-
-
-}
-
-
-
-
-
-
-
-
-function sendMessage(){
-
-
-let text=document
-.getElementById("message")
-.value
-.trim();
-
-
-
-if(!text)return;
-
-
-
-db.collection("messages")
-.add({
-
-from:me.uid,
-
-to:chatUser,
-
-text:text,
-
-time:Date.now()
-
-});
-
-
-
-document.getElementById("message")
-.value="";
-
-
-}
-
-
-
-
-
-
-
-
-function listenMessages(){
-
-
-let box=document.getElementById("messages");
-
-
-db.collection("messages")
-
-.orderBy("time")
-
-.onSnapshot(snapshot=>{
-
-
-box.innerHTML="";
-
-
-
-snapshot.forEach(doc=>{
-
-
-let m=doc.data();
-
-
+document
+.getElementById("verifyText")
+.innerText =
+"Мы отправили ссылку на:\n\n"+email;
+
+};
 
 if(
-
-(m.from===me.uid &&
-m.to===chatUser)
-
-||
-
-(m.from===chatUser &&
-m.to===me.uid)
-
+isSignInWithEmailLink(
+auth,
+window.location.href
+)
 ){
 
+let email =
+localStorage.getItem(
+"emailForSignIn"
+);
 
+if(!email){
 
-let div=document.createElement("div");
-
-
-div.className="msg";
-
-
-div.innerHTML=
-
-m.text+
-
-`
-
-<div class="time">
-
-${new Date(m.time)
-.toLocaleTimeString()
-.slice(0,5)} ○
-
-</div>
-
-`;
-
-
-
-box.appendChild(div);
-
-
+email =
+prompt("Введите email");
 
 }
 
+signInWithEmailLink(
+auth,
+email,
+window.location.href
+)
+.then(async()=>{
 
-});
+const user =
+auth.currentUser;
 
+const snap =
+await getDoc(
+doc(
+db,
+"users",
+user.uid
+)
+);
 
+if(snap.exists()){
 
-});
-
-
-}
-
-
-
-
-
-
-
-function openProfile(){
-
-
-document.getElementById("home")
-.classList.add("hidden");
-
-
-
-document.getElementById("profile")
+document
+.getElementById("home")
 .classList.remove("hidden");
 
+}else{
+
+document
+.getElementById("createProfile")
+.classList.remove("hidden");
 
 }
 
+});
 
+}
 
+window.createProfile =
+async function(){
 
+const user =
+auth.currentUser;
 
+const name =
+document.getElementById("name").value;
 
-function logout(){
+const username =
+document.getElementById("username").value;
 
-auth.signOut();
+await setDoc(
+doc(
+db,
+"users",
+user.uid
+),
+{
+name,
+username,
+email:user.email,
+avatar:"",
+createdAt:Date.now()
+}
+);
+
+document
+.getElementById("createProfile")
+.classList.add("hidden");
+
+document
+.getElementById("home")
+.classList.remove("hidden");
+
+};
+
+window.checkLogin=function(){
+
+alert(
+"Перейдите по ссылке из письма."
+);
+
+};
+
+window.openSettings=function(){
+
+document
+.getElementById("home")
+.classList.add("hidden");
+
+document
+.getElementById("settings")
+.classList.remove("hidden");
+
+};
+
+window.backHome=function(){
+
+document
+.getElementById("settings")
+.classList.add("hidden");
+
+document
+.getElementById("home")
+.classList.remove("hidden");
+
+};
+
+window.logout=
+async function(){
+
+await signOut(auth);
 
 location.reload();
 
-}
-
-
+};
 
 </script>
 
-
 </body>
-
 </html>
-
-
-
 
