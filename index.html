@@ -1,86 +1,61 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
 <title>J Messenger</title>
 
-<style>
+<link rel="stylesheet" href="style.css">
 
-body{
-margin:0;
-font-family:Arial,sans-serif;
-background:#0f172a;
-color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
-
-.box{
-width:90%;
-max-width:400px;
-background:#1e293b;
-padding:20px;
-border-radius:20px;
-text-align:center;
-}
-
-.logo{
-font-size:80px;
-font-weight:bold;
-color:#60a5fa;
-}
-
-input{
-width:100%;
-padding:12px;
-margin:10px 0;
-border:none;
-border-radius:10px;
-box-sizing:border-box;
-}
-
-button{
-width:100%;
-padding:12px;
-border:none;
-border-radius:10px;
-background:#3b82f6;
-color:white;
-cursor:pointer;
-}
-
-.hidden{
-display:none;
-}
-
-</style>
 </head>
-<body>
 
-<div id="login">
+<body class="dark">
 
-<div class="box">
+<!-- Заставка -->
+
+<div id="splash" class="screen">
 
 <div class="logo">J</div>
 
-<h2>J Messenger</h2>
+<h1>J Messenger</h1>
 
 <p>Соединяя людей мгновенно</p>
 
-<p>
+</div>
+
+
+<!-- Вход -->
+
+<div id="login" class="screen hidden">
+
+<div class="card">
+
+<div class="logo small">J</div>
+
+<h2>J Messenger</h2>
+
+<p class="subtitle">
+Соединяя людей мгновенно
+</p>
+
+<p class="text">
+
 Для входа или регистрации аккаунта
 подтвердите свою электронную почту.
+
+<br><br>
+
+Если письмо не пришло,
+проверьте папку «Спам».
+
 </p>
 
 <input
 id="email"
 type="email"
-placeholder="Электронная почта"
->
+placeholder="Электронная почта">
 
 <button onclick="sendLink()">
 Продолжить
@@ -90,88 +65,572 @@ placeholder="Электронная почта"
 
 </div>
 
-<div id="verify" class="hidden">
 
-<div class="box">
+<!-- Письмо отправлено -->
+
+<div id="verify" class="screen hidden">
+
+<div class="card">
+
+<div class="mailIcon">
+📩
+</div>
 
 <h2>Письмо отправлено</h2>
 
 <p id="verifyText"></p>
 
-<button onclick="checkLogin()">
-Я подтвердил вход
-</button>
+<p class="smallText">
+
+Откройте письмо и перейдите по ссылке.
+
+После подтверждения вы автоматически
+войдёте в J Messenger.
+
+</p>
 
 </div>
 
 </div>
 
-<div id="createProfile" class="hidden">
 
-<div class="box">
+<!-- Создание профиля -->
+
+<div id="createProfile" class="screen hidden">
+
+<div class="card">
 
 <h2>Создание профиля</h2>
 
-<input id="name" placeholder="Имя">
+<input
+id="name"
+placeholder="Имя">
 
-<input id="username" placeholder="Username">
+<input
+id="username"
+placeholder="Username">
+
+<div id="usernameStatus"></div>
+
+<p class="smallText">
+
+Username должен быть уникальным.
+
+</p>
 
 <button onclick="createProfile()">
+
 Создать профиль
+
 </button>
 
 </div>
 
 </div>
 
-<div id="home" class="hidden">
 
-<div class="box">
+<!-- Главная -->
 
-<h2>Главная</h2>
+<div id="home" class="screen hidden">
+
+<header>
+
+<h2>J Messenger</h2>
+
+<button id="newGroupBtn">
+
++
+
+</button>
+
+</header>
+
+<div class="searchBox">
 
 <input
 id="search"
-placeholder="Поиск пользователей"
->
+placeholder="🔍 Поиск пользователей...">
+
+</div>
+
+<div id="emptyChats">
+
+<div class="emptyEmoji">
+
+😔
+
+</div>
+
+<div class="emptyTitle">
+
+Пока тут никого нет
+
+</div>
+
+<div class="emptyText">
+
+Найдите кого-то,<br>
+
+чтобы начать общение 💬
+
+</div>
+
+</div>
+
+<nav>
+
+<button>
+
+💬 Чаты
+
+</button>
 
 <button onclick="openSettings()">
+
+⚙️ Настройки
+
+</button>
+
+</nav>
+
+</div>
+
+
+<!-- Настройки -->
+
+<div id="settings" class="screen hidden">
+
+<div class="card">
+
+<h2>
+
 Настройки
-</button>
 
-</div>
+</h2>
 
-</div>
+<button id="themeButton">
 
-<div id="settings" class="hidden">
+🌙 Сменить тему
 
-<div class="box">
-
-<h2>Настройки</h2>
-
-<button>
-📷 Изменить фото профиля
 </button>
 
 <button>
+
+📷 Изменить фото
+
+</button>
+
+<button>
+
 ✏️ Изменить имя
+
 </button>
 
-<button onclick="logout()">
+<button>
+
+🟢 Онлайн
+
+</button>
+
+<button>
+
+🌙 Не беспокоить
+
+</button>
+
+<button
+class="logout"
+onclick="logout()">
+
 🚪 Выйти из аккаунта
+
 </button>
 
 <button onclick="backHome()">
+
 Назад
+
 </button>
 
 </div>
 
 </div>
-  <script type="module">
 
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+<!-- Создание группы -->
+
+<div id="createGroup"
+class="screen hidden">
+
+<div class="card">
+
+<h2>
+
+Создание группы
+
+</h2>
+
+<button>
+
+📷 Поставить аватар
+
+</button>
+
+<input
+id="groupName"
+placeholder="Название группы">
+
+<div>
+
+<label>
+
+<input
+type="radio"
+name="groupType"
+checked>
+
+Личная
+
+</label>
+
+<label>
+
+<input
+type="radio"
+name="groupType">
+
+Публичная
+
+</label>
+
+</div>
+
+<div id="publicGroupFields"
+class="hidden">
+
+<input
+placeholder="Username группы">
+
+<div id="groupStatus">
+
+🟢 Свободно
+
+</div>
+
+<p class="smallText">
+
+По этому имени
+пользователи смогут
+найти вашу группу.
+
+</p>
+
+</div>
+
+<button>
+
+Создать группу
+
+</button>
+
+</div>
+
+</div>
+
+<script type="module" src="firebase.js"></script>
+
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:"Segoe UI",sans-serif;
+}
+
+body{
+background:#0f172a;
+color:white;
+transition:.4s;
+overflow:hidden;
+}
+
+body.light{
+background:#fffaf3;
+color:#222;
+}
+
+.screen{
+width:100%;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+animation:fade .5s;
+}
+
+.hidden{
+display:none;
+}
+
+.card{
+width:90%;
+max-width:420px;
+background:#1e293b;
+padding:30px;
+border-radius:25px;
+text-align:center;
+box-shadow:0 15px 40px rgba(0,0,0,.35);
+transition:.4s;
+}
+
+body.light .card{
+background:white;
+box-shadow:0 15px 35px rgba(0,0,0,.12);
+}
+
+.logo{
+width:110px;
+height:110px;
+border-radius:50%;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:60px;
+font-weight:bold;
+margin-bottom:20px;
+background:linear-gradient(135deg,#6366f1,#8b5cf6);
+color:white;
+}
+
+body.light .logo{
+background:linear-gradient(135deg,#ffb703,#ff7b00);
+}
+
+.logo.small{
+width:85px;
+height:85px;
+font-size:45px;
+margin:auto;
+margin-bottom:20px;
+}
+
+h1,h2{
+margin-bottom:15px;
+}
+
+.subtitle{
+color:#94a3b8;
+margin-bottom:25px;
+}
+
+body.light .subtitle{
+color:#777;
+}
+
+.text{
+line-height:1.6;
+margin-bottom:20px;
+}
+
+.smallText{
+font-size:14px;
+margin-top:15px;
+color:#94a3b8;
+line-height:1.5;
+}
+
+body.light .smallText{
+color:#777;
+}
+
+input{
+width:100%;
+padding:15px;
+margin-top:15px;
+border:none;
+outline:none;
+border-radius:15px;
+font-size:16px;
+background:#334155;
+color:white;
+transition:.3s;
+}
+
+body.light input{
+background:#f4f4f4;
+color:#222;
+}
+
+input:focus{
+transform:scale(1.02);
+}
+
+button{
+width:100%;
+padding:15px;
+margin-top:18px;
+border:none;
+border-radius:15px;
+font-size:16px;
+cursor:pointer;
+background:#6366f1;
+color:white;
+transition:.25s;
+}
+
+button:hover{
+transform:translateY(-2px);
+}
+
+body.light button{
+background:#ff8c00;
+}
+
+header{
+width:100%;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px;
+font-size:22px;
+}
+
+#newGroupBtn{
+width:55px;
+height:55px;
+border-radius:50%;
+font-size:30px;
+padding:0;
+background:#8b5cf6;
+}
+
+body.light #newGroupBtn{
+background:#ff9800;
+}
+
+.searchBox{
+width:90%;
+margin:auto;
+}
+
+.searchBox input{
+margin-top:0;
+}
+
+#emptyChats{
+margin-top:60px;
+text-align:center;
+}
+
+.emptyEmoji{
+font-size:65px;
+opacity:0;
+animation:emoji .5s forwards;
+}
+
+.emptyTitle{
+font-size:24px;
+margin-top:20px;
+opacity:0;
+animation:text .5s forwards;
+animation-delay:.4s;
+}
+
+.emptyText{
+margin-top:15px;
+font-size:16px;
+line-height:1.7;
+opacity:0;
+animation:text .5s forwards;
+animation-delay:.8s;
+color:#94a3b8;
+}
+
+body.light .emptyText{
+color:#777;
+}
+
+nav{
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+display:flex;
+background:#1e293b;
+padding:12px;
+}
+
+body.light nav{
+background:white;
+box-shadow:0 -5px 15px rgba(0,0,0,.08);
+}
+
+nav button{
+margin:0 8px;
+}
+
+.mailIcon{
+font-size:70px;
+margin-bottom:20px;
+}
+
+.logout{
+background:#ef4444;
+}
+
+#usernameStatus{
+margin-top:10px;
+font-size:15px;
+font-weight:600;
+}
+
+.success{
+color:#22c55e;
+}
+
+.error{
+color:#ef4444;
+}
+
+@keyframes fade{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+@keyframes emoji{
+from{
+opacity:0;
+transform:translateY(15px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+@keyframes text{
+from{
+opacity:0;
+transform:translateY(12px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+// Firebase SDK
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
 getAuth,
@@ -179,18 +638,23 @@ sendSignInLinkToEmail,
 isSignInWithEmailLink,
 signInWithEmailLink,
 signOut
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
 getFirestore,
 doc,
 setDoc,
 getDoc,
+getDocs,
 collection,
-getDocs
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+updateDoc,
+serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+// =========================
+// Firebase Config
+// =========================
 
 const firebaseConfig = {
 
@@ -200,193 +664,556 @@ authDomain: "jmessenger-519cf.firebaseapp.com",
 
 projectId: "jmessenger-519cf",
 
-storageBucket:
-"jmessenger-519cf.firebasestorage.app",
+storageBucket: "jmessenger-519cf.firebasestorage.app",
 
-messagingSenderId:
-"339570238049",
+messagingSenderId: "339570238049",
 
-appId:
-"1:339570238049:web:01d8a317f99314ddefc020"
+appId: "1:339570238049:web:01d8a317f99314ddefc020",
+
+measurementId: "G-YPYR4B4HCV"
 
 };
 
-const app =
-initializeApp(firebaseConfig);
 
-const auth =
-getAuth(app);
+// =========================
+// Firebase
+// =========================
 
-const db =
-getFirestore(app);
-    window.sendLink = async function(){
+const app = initializeApp(firebaseConfig);
 
-const email =
-document.getElementById("email").value;
+const auth = getAuth(app);
 
-const actionCodeSettings = {
+const db = getFirestore(app);
+
+
+// =========================
+// Export
+// =========================
+
+window.auth = auth;
+
+window.db = db;
+
+window.sendSignInLinkToEmail = sendSignInLinkToEmail;
+
+window.isSignInWithEmailLink = isSignInWithEmailLink;
+
+window.signInWithEmailLink = signInWithEmailLink;
+
+window.signOut = signOut;
+
+window.doc = doc;
+
+window.setDoc = setDoc;
+
+window.getDoc = getDoc;
+
+window.getDocs = getDocs;
+
+window.collection = collection;
+
+window.updateDoc = updateDoc;
+
+window.serverTimestamp = serverTimestamp;
+
+
+// =========================
+// Splash Screen
+// =========================
+
+setTimeout(()=>{
+
+document
+.getElementById("splash")
+.classList.add("hidden");
+
+document
+.getElementById("login")
+.classList.remove("hidden");
+
+},1200);
+// =====================
+// J Messenger V1.0
+// app.js
+// Часть 4.1
+// =====================
+
+function show(id){
+
+document.querySelectorAll(".screen").forEach(screen=>{
+
+screen.classList.add("hidden");
+
+});
+
+document.getElementById(id).classList.remove("hidden");
+
+}
+
+
+// ----------------------
+// Отправка ссылки
+// ----------------------
+
+window.sendLink=async()=>{
+
+const email=document
+.getElementById("email")
+.value
+.trim();
+
+if(email===""){
+
+alert("Введите электронную почту");
+
+return;
+
+}
+
+const actionCodeSettings={
 
 url:
-window.location.origin +
+window.location.origin+
 window.location.pathname,
 
 handleCodeInApp:true
 
 };
 
+try{
+
 await sendSignInLinkToEmail(
+
 auth,
 email,
 actionCodeSettings
+
 );
 
 localStorage.setItem(
+
 "emailForSignIn",
 email
+
 );
 
-document
-.getElementById("login")
-.classList.add("hidden");
+document.getElementById(
+"verifyText"
+).innerHTML=
 
-document
-.getElementById("verify")
-.classList.remove("hidden");
+`
+Мы отправили ссылку
+для входа на:<br><br>
 
-document
-.getElementById("verifyText")
-.innerText =
-"Мы отправили ссылку на:\n\n"+email;
+<b>${email}</b>
+
+<br><br>
+
+Откройте письмо
+и перейдите
+по ссылке.
+`;
+
+show("verify");
+
+}catch(e){
+
+alert(e.message);
+
+}
 
 };
 
+
+// ----------------------
+// Вход по ссылке
+// ----------------------
+
 if(
+
 isSignInWithEmailLink(
+
 auth,
+
 window.location.href
+
 )
+
 ){
 
-let email =
+let email=
+
 localStorage.getItem(
+
 "emailForSignIn"
+
 );
 
 if(!email){
 
-email =
-prompt("Введите email");
+email=prompt(
+
+"Введите вашу почту"
+
+);
 
 }
 
 signInWithEmailLink(
+
 auth,
+
 email,
+
 window.location.href
+
 )
+
 .then(async()=>{
 
-const user =
-auth.currentUser;
+localStorage.removeItem(
 
-const snap =
-await getDoc(
-doc(
-db,
-"users",
-user.uid
-)
+"emailForSignIn"
+
 );
+
+const user=auth.currentUser;
+
+const ref=
+
+doc(
+
+db,
+
+"users",
+
+user.uid
+
+);
+
+const snap=
+
+await getDoc(ref);
 
 if(snap.exists()){
 
-document
-.getElementById("home")
-.classList.remove("hidden");
+show("home");
+
+loadProfile();
 
 }else{
 
-document
-.getElementById("createProfile")
-.classList.remove("hidden");
+show("createProfile");
 
 }
+
+})
+
+.catch(e=>{
+
+alert(e.message);
 
 });
 
 }
 
-window.createProfile =
-async function(){
 
-const user =
-auth.currentUser;
+// ----------------------
+// Проверка Username
+// ----------------------
 
-const name =
-document.getElementById("name").value;
+const usernameInput=
 
-const username =
-document.getElementById("username").value;
+document.getElementById(
+
+"username"
+
+);
+
+if(usernameInput){
+
+usernameInput.addEventListener(
+
+"input",
+
+checkUsername
+
+);
+
+}
+
+async function checkUsername(){
+
+const username=
+
+usernameInput.value
+
+.trim()
+
+.toLowerCase();
+
+const status=
+
+document.getElementById(
+
+"usernameStatus"
+
+);
+
+if(username.length===0){
+
+status.innerHTML="";
+
+return;
+
+}
+
+const users=
+
+await getDocs(
+
+collection(
+
+db,
+
+"users"
+
+)
+
+);
+
+let exists=false;
+
+users.forEach(doc=>{
+
+const data=doc.data();
+
+if(
+
+data.username===username
+
+){
+
+exists=true;
+
+}
+
+});
+
+if(exists){
+
+status.className="error";
+
+status.innerHTML=
+
+"🔴 Username уже занят";
+
+}else{
+
+status.className="success";
+
+status.innerHTML=
+
+"🟢 Username свободен";
+
+}
+
+}
+// =====================
+// J Messenger V1.0
+// app.js
+// Часть 4.2
+// =====================
+
+
+// ----------------------
+// Создание профиля
+// ----------------------
+
+window.createProfile = async ()=>{
+
+const name=document
+.getElementById("name")
+.value
+.trim();
+
+const username=document
+.getElementById("username")
+.value
+.trim()
+.toLowerCase();
+
+if(name===""||username===""){
+
+alert("Заполните все поля");
+
+return;
+
+}
+
+const users=await getDocs(
+collection(db,"users")
+);
+
+let exists=false;
+
+users.forEach(doc=>{
+
+const data=doc.data();
+
+if(data.username===username){
+
+exists=true;
+
+}
+
+});
+
+if(exists){
+
+alert("Username уже занят");
+
+return;
+
+}
 
 await setDoc(
+
 doc(
 db,
 "users",
-user.uid
+auth.currentUser.uid
 ),
+
 {
-name,
-username,
-email:user.email,
+
+name:name,
+
+username:username,
+
+email:auth.currentUser.email,
+
 avatar:"",
-createdAt:Date.now()
+
+status:"online",
+
+theme:"dark",
+
+createdAt:serverTimestamp()
+
 }
+
 );
 
-document
-.getElementById("createProfile")
-.classList.add("hidden");
+loadProfile();
 
-document
-.getElementById("home")
-.classList.remove("hidden");
+show("home");
 
 };
 
-window.checkLogin=function(){
 
-alert(
-"Перейдите по ссылке из письма."
+// ----------------------
+// Загрузка профиля
+// ----------------------
+
+async function loadProfile(){
+
+const snap=await getDoc(
+
+doc(
+db,
+"users",
+auth.currentUser.uid
+)
+
 );
 
+if(!snap.exists()) return;
+
+const data=snap.data();
+
+if(data.theme==="light"){
+
+document.body.classList.add("light");
+
+}else{
+
+document.body.classList.remove("light");
+
+}
+
+}
+
+
+// ----------------------
+// Настройки
+// ----------------------
+
+window.openSettings=()=>{
+
+show("settings");
+
 };
 
-window.openSettings=function(){
+window.backHome=()=>{
 
-document
-.getElementById("home")
-.classList.add("hidden");
-
-document
-.getElementById("settings")
-.classList.remove("hidden");
+show("home");
 
 };
 
-window.backHome=function(){
+
+// ----------------------
+// Смена темы
+// ----------------------
 
 document
-.getElementById("settings")
-.classList.add("hidden");
+.getElementById("themeButton")
+.addEventListener("click",toggleTheme);
+
+async function toggleTheme(){
+
+document.body.classList.toggle("light");
+
+const light=document.body.classList.contains("light");
+
+await updateDoc(
+
+doc(
+db,
+"users",
+auth.currentUser.uid
+),
+
+{
+
+theme:light?"light":"dark"
+
+}
+
+);
+
+if(light){
 
 document
-.getElementById("home")
-.classList.remove("hidden");
+.getElementById("themeButton")
+.innerHTML="☀️ Светлая тема";
 
-};
+}else{
 
-window.logout=
-async function(){
+document
+.getElementById("themeButton")
+.innerHTML="🌙 Тёмная тема";
+
+}
+
+}
+
+
+// ----------------------
+// Выход
+// ----------------------
+
+window.logout=async()=>{
 
 await signOut(auth);
 
@@ -394,8 +1221,593 @@ location.reload();
 
 };
 
-</script>
 
-</body>
-</html>
+// ----------------------
+// Создание группы
+// ----------------------
 
+document
+.getElementById("newGroupBtn")
+.onclick=()=>{
+
+show("createGroup");
+
+};
+
+
+// ----------------------
+// Статус
+// ----------------------
+
+window.setStatus=async(status)=>{
+
+await updateDoc(
+
+doc(
+db,
+"users",
+auth.currentUser.uid
+),
+
+{
+
+status:status
+
+}
+
+);
+
+};
+
+
+// ----------------------
+// Онлайн
+// ----------------------
+
+window.addEventListener("focus",()=>{
+
+if(auth.currentUser){
+
+setStatus("online");
+
+}
+
+});
+
+window.addEventListener("blur",()=>{
+
+if(auth.currentUser){
+
+setStatus("offline");
+
+}
+
+});
+
+
+// ----------------------
+// Заставка
+// ----------------------
+
+setTimeout(()=>{
+
+show("login");
+
+},1200);
+// =====================
+// Группа
+// Часть 5.1
+// =====================
+
+// Открыть окно создания группы
+window.openCreateGroup = () => {
+
+    show("createGroup");
+
+};
+
+
+// Проверка Username группы
+
+const groupUsername =
+document.getElementById("groupUsername");
+
+const groupStatus =
+document.getElementById("groupStatus");
+
+if(groupUsername){
+
+groupUsername.addEventListener(
+"input",
+checkGroupUsername
+);
+
+}
+
+async function checkGroupUsername(){
+
+const username =
+groupUsername.value
+.trim()
+.toLowerCase();
+
+if(username===""){
+
+groupStatus.innerHTML="";
+
+return;
+
+}
+
+const groups =
+await getDocs(
+collection(db,"groups")
+);
+
+let exists=false;
+
+groups.forEach(doc=>{
+
+const data=doc.data();
+
+if(data.username===username){
+
+exists=true;
+
+}
+
+});
+
+if(exists){
+
+groupStatus.className="error";
+
+groupStatus.innerHTML=
+"🔴 Username уже занят";
+
+}else{
+
+groupStatus.className="success";
+
+groupStatus.innerHTML=
+"🟢 Username свободен";
+
+}
+
+}
+
+
+// Создание группы
+
+window.createGroup = async ()=>{
+
+const name =
+document
+.getElementById("groupName")
+.value
+.trim();
+
+const username =
+groupUsername
+.value
+.trim()
+.toLowerCase();
+
+if(name===""){
+
+alert("Введите название группы");
+
+return;
+
+}
+
+const id =
+crypto.randomUUID();
+
+await setDoc(
+
+doc(
+db,
+"groups",
+id
+),
+
+{
+
+name:name,
+
+username:username,
+
+owner:
+auth.currentUser.uid,
+
+members:[
+auth.currentUser.uid
+],
+
+createdAt:
+serverTimestamp()
+
+}
+
+);
+
+alert("Группа создана 🎉");
+
+show("home");
+
+};
+// =====================
+// Уведомления
+// =====================
+
+function showNotification(title, text){
+
+const notify=document.createElement("div");
+
+notify.className="notify";
+
+notify.innerHTML=`
+<b>${title}</b><br>
+${text}
+`;
+
+document.body.appendChild(notify);
+
+setTimeout(()=>{
+
+notify.classList.add("show");
+
+},50);
+
+setTimeout(()=>{
+
+notify.classList.remove("show");
+
+setTimeout(()=>{
+
+notify.remove();
+
+},400);
+
+},3000);
+
+}
+
+
+// =====================
+// Онлайн / Оффлайн
+// =====================
+
+window.setOnline=async()=>{
+
+if(!auth.currentUser)return;
+
+await updateDoc(
+
+doc(db,"users",auth.currentUser.uid),
+
+{
+
+status:"online"
+
+}
+
+);
+
+};
+
+window.setOffline=async()=>{
+
+if(!auth.currentUser)return;
+
+await updateDoc(
+
+doc(db,"users",auth.currentUser.uid),
+
+{
+
+status:"offline"
+
+}
+
+);
+
+};
+
+window.setDoNotDisturb=async()=>{
+
+if(!auth.currentUser)return;
+
+await updateDoc(
+
+doc(db,"users",auth.currentUser.uid),
+
+{
+
+status:"dnd"
+
+}
+
+);
+
+};
+
+
+// =====================
+// Смена темы
+// =====================
+
+const overlay=document.createElement("div");
+
+overlay.id="themeOverlay";
+
+overlay.innerHTML=`
+<div class="themeWindow">
+
+<div id="themeIcon">
+
+🌙
+
+</div>
+
+</div>
+`;
+
+document.body.appendChild(overlay);
+
+async function toggleTheme(){
+
+overlay.classList.add("active");
+
+const icon=document.getElementById("themeIcon");
+
+setTimeout(()=>{
+
+if(document.body.classList.contains("light")){
+
+icon.innerHTML="🌙";
+
+}else{
+
+icon.innerHTML="☀️";
+
+}
+
+},350);
+
+setTimeout(async()=>{
+
+document.body.classList.toggle("light");
+
+const light=document.body.classList.contains("light");
+
+await updateDoc(
+
+doc(db,"users",auth.currentUser.uid),
+
+{
+
+theme:light?"light":"dark"
+
+}
+
+);
+
+},700);
+
+setTimeout(()=>{
+
+overlay.classList.remove("active");
+
+},1100);
+
+}
+
+document
+.getElementById("themeButton")
+.onclick=toggleTheme;
+
+
+// =====================
+// Пример уведомления
+// =====================
+
+// showNotification(
+// "Артём",
+// "Привет 👋"
+// );
+/* ===========================
+   Уведомления
+=========================== */
+
+.notify{
+position:fixed;
+top:20px;
+right:20px;
+min-width:260px;
+padding:16px;
+border-radius:18px;
+background:#1e293b;
+color:white;
+box-shadow:0 12px 35px rgba(0,0,0,.35);
+transform:translateY(-40px);
+opacity:0;
+transition:.35s;
+z-index:9999;
+}
+
+.notify.show{
+transform:translateY(0);
+opacity:1;
+}
+
+body.light .notify{
+background:white;
+color:#222;
+}
+
+
+/* ===========================
+   Анимация смены темы
+=========================== */
+
+#themeOverlay{
+
+position:fixed;
+inset:0;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+backdrop-filter:blur(10px);
+
+background:rgba(0,0,0,.15);
+
+opacity:0;
+visibility:hidden;
+
+transition:.35s;
+
+z-index:99999;
+
+}
+
+#themeOverlay.active{
+
+opacity:1;
+visibility:visible;
+
+}
+
+.themeWindow{
+
+width:180px;
+height:180px;
+
+background:white;
+
+border-radius:35px;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+box-shadow:0 20px 45px rgba(0,0,0,.25);
+
+animation:themePopup .45s ease;
+
+}
+
+body.dark .themeWindow{
+
+background:#1e293b;
+
+}
+
+#themeIcon{
+
+font-size:80px;
+
+animation:rotateTheme .8s ease;
+
+}
+
+
+/* ===========================
+   Плюсик
+=========================== */
+
+#newGroupBtn{
+
+transition:.25s;
+
+}
+
+#newGroupBtn:hover{
+
+transform:scale(1.1);
+
+}
+
+#newGroupBtn:active{
+
+transform:scale(.95);
+
+}
+
+
+/* ===========================
+   Username
+=========================== */
+
+.success{
+
+color:#22c55e;
+
+font-weight:bold;
+
+}
+
+.error{
+
+color:#ef4444;
+
+font-weight:bold;
+
+}
+
+
+/* ===========================
+   Пустые чаты
+=========================== */
+
+#emptyChats{
+
+animation:fade .7s ease;
+
+}
+
+
+/* ===========================
+   Анимации
+=========================== */
+
+@keyframes themePopup{
+
+0%{
+
+transform:scale(.8);
+opacity:0;
+
+}
+
+100%{
+
+transform:scale(1);
+opacity:1;
+
+}
+
+}
+
+@keyframes rotateTheme{
+
+0%{
+
+transform:rotate(-180deg) scale(.7);
+
+opacity:0;
+
+}
+
+100%{
+
+transform:rotate(0deg) scale(1);
+
+opacity:1;
+
+}
+
+}
