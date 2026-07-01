@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>J Messenger</title>
   
-  <!-- ============================================================ -->
-  <!-- ЧАСТЬ 1: ИМПОРТЫ FIREBASE -->
-  <!-- ============================================================ -->
   <script type="importmap">
     {
       "imports": {
@@ -19,13 +16,7 @@
     }
   </script>
   
-  <!-- ============================================================ -->
-  <!-- ЧАСТЬ 2: ВСЕ СТИЛИ (CSS) -->
-  <!-- ============================================================ -->
   <style>
-    /* ============================================================
-       ГЛОБАЛЬНЫЕ СБРОСЫ И БАЗОВЫЕ СТИЛИ
-       ============================================================ */
     * {
       margin: 0;
       padding: 0;
@@ -58,9 +49,6 @@
       backdrop-filter: blur(2px);
     }
 
-    /* ============================================================
-       СВЕТЛАЯ ТЕМА
-       ============================================================ */
     body.light #app {
       background: #ffffff;
       color: #1e1e24;
@@ -102,9 +90,6 @@
       color: #1e1e24;
     }
 
-    /* ============================================================
-       ОБЩИЕ КОМПОНЕНТЫ
-       ============================================================ */
     .hidden {
       display: none !important;
     }
@@ -178,9 +163,6 @@
       margin-bottom: 12px;
     }
 
-    /* ============================================================
-       ШАПКА И НАВИГАЦИЯ
-       ============================================================ */
     .header {
       display: flex;
       justify-content: space-between;
@@ -254,9 +236,6 @@
       color: #e87a4b;
     }
 
-    /* ============================================================
-       КАРТОЧКИ ПОЛЬЗОВАТЕЛЕЙ И ГРУПП
-       ============================================================ */
     .user-item,
     .group-item {
       background: #26262e;
@@ -279,9 +258,6 @@
       margin-left: 8px;
     }
 
-    /* ============================================================
-       МОДАЛЬНЫЕ ОКНА
-       ============================================================ */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -307,15 +283,6 @@
       box-shadow: 0 30px 80px rgba(0,0,0,0.6);
     }
 
-    .flex-row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    /* ============================================================
-       ПРОВЕРКА USERNAME
-       ============================================================ */
     .username-check {
       font-size: 14px;
       margin: 4px 0 12px;
@@ -329,9 +296,6 @@
       color: #ff6b6b;
     }
 
-    /* ============================================================
-       НАСТРОЙКИ ТЕМЫ
-       ============================================================ */
     .theme-toggle {
       display: flex;
       align-items: center;
@@ -377,9 +341,6 @@
       margin: 8px 0;
     }
 
-    /* ============================================================
-       ПУСТОЕ СОСТОЯНИЕ
-       ============================================================ */
     .empty-state {
       text-align: center;
       padding: 40px 0;
@@ -390,9 +351,6 @@
       font-size: 48px;
     }
 
-    /* ============================================================
-       АНИМАЦИЯ ПЕРЕКЛЮЧЕНИЯ ТЕМЫ
-       ============================================================ */
     .theme-animation-overlay {
       position: fixed;
       top: 0;
@@ -427,9 +385,36 @@
       box-shadow: 0 0 100px #f5b342;
     }
 
-    /* ============================================================
-       АДАПТИВНОСТЬ
-       ============================================================ */
+    .domain-error {
+      background: #2a1a1a;
+      border: 1px solid #ff6b6b;
+      border-radius: 16px;
+      padding: 20px;
+      margin: 10px 0;
+    }
+
+    .domain-error h3 {
+      color: #ff6b6b;
+      margin-bottom: 10px;
+    }
+
+    .domain-error code {
+      display: block;
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-size: 14px;
+      color: #4cd964;
+      word-break: break-all;
+    }
+
+    .domain-error .steps {
+      color: #b0b0bc;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
     @media (max-width: 480px) {
       #app {
         padding: 16px;
@@ -437,17 +422,47 @@
         border-radius: 28px;
       }
     }
+
+    .loader-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      gap: 20px;
+    }
+
+    .loader-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #3a3a44;
+      border-top: 4px solid #e87a4b;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loader-text {
+      color: #8e8e9a;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
-  <div id="app"></div>
+  <div id="app">
+    <div class="loader-container">
+      <div class="loader-spinner"></div>
+      <div class="loader-text">Загрузка J Messenger...</div>
+    </div>
+  </div>
   
-  <!-- ============================================================ -->
-  <!-- ЧАСТЬ 3: ВЕСЬ JAVASCRIPT -->
-  <!-- ============================================================ -->
   <script type="module">
     // ============================================================
-    // 3.1 - ИНИЦИАЛИЗАЦИЯ FIREBASE
+    // ИНИЦИАЛИЗАЦИЯ FIREBASE
     // ============================================================
     import { initializeApp } from "firebase/app";
     import { 
@@ -478,13 +493,24 @@
       measurementId: "G-YPYR4B4HCV"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+    // Получаем текущий домен
+    const currentDomain = window.location.hostname;
+    const isLocalhost = currentDomain === 'localhost' || currentDomain === '127.0.0.1';
+
+    let app, auth, db, storage;
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      storage = getStorage(app);
+      console.log('🔥 Firebase инициализирован');
+    } catch (error) {
+      console.error('❌ Ошибка Firebase:', error);
+      showErrorScreen(error.message);
+    }
 
     // ============================================================
-    // 3.2 - ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+    // ГЛОБАЛЬНОЕ СОСТОЯНИЕ
     // ============================================================
     let currentUser = null;
     let currentUserData = null;
@@ -492,14 +518,43 @@
     const appEl = document.getElementById('app');
 
     // ============================================================
-    // 3.3 - ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
     // ============================================================
     function render(html) {
       appEl.innerHTML = html;
     }
 
+    function showErrorScreen(message) {
+      const domain = window.location.hostname;
+      render(`
+        <div class="flex-center" style="padding: 20px 0;">
+          <h1 style="font-size: 38px; font-weight: 800; background: linear-gradient(135deg,#f0935e,#e87a4b); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+            J Messenger
+          </h1>
+          <div class="domain-error">
+            <h3>⚠️ Требуется настройка Firebase</h3>
+            <div class="steps">
+              <p><strong>Ошибка:</strong> ${message}</p>
+              <br>
+              <p><strong>Решение:</strong></p>
+              <ol style="margin-left: 20px; margin-top: 10px;">
+                <li>Зайдите в <a href="https://console.firebase.google.com/" target="_blank" style="color: #e87a4b;">Firebase Console</a></li>
+                <li>Выберите проект <strong>jmessenger-519cf</strong></li>
+                <li>Нажмите <strong>Authentication → Settings</strong></li>
+                <li>Во вкладке <strong>Authorized domains</strong> нажмите <strong>Add domain</strong></li>
+                <li>Добавьте этот домен: <code>${domain}</code></li>
+                ${isLocalhost ? '<li>Также добавьте <code>localhost</code></li>' : ''}
+                <li>Нажмите <strong>Save</strong> и обновите страницу</li>
+              </ol>
+            </div>
+          </div>
+          <button onclick="location.reload()" class="btn-primary" style="margin-top: 20px;">🔄 Обновить страницу</button>
+        </div>
+      `);
+    }
+
     // ============================================================
-    // 3.4 - ЭКРАН АВТОРИЗАЦИИ
+    // ЭКРАН АВТОРИЗАЦИИ
     // ============================================================
     function showAuthScreen() {
       render(`
@@ -522,7 +577,11 @@
       
       document.getElementById('sendLinkBtn').addEventListener('click', async () => {
         const email = document.getElementById('emailInput').value.trim();
-        if (!email) return alert('Введите email');
+        if (!email) {
+          document.getElementById('authMessage').textContent = 'Введите email';
+          return;
+        }
+        
         try {
           const actionCodeSettings = { 
             url: window.location.href, 
@@ -532,13 +591,17 @@
           localStorage.setItem('emailForSignIn', email);
           showEmailSentScreen(email);
         } catch(e) {
-          document.getElementById('authMessage').textContent = 'Ошибка: ' + e.message;
+          if (e.code === 'auth/unauthorized-continue-uri') {
+            showErrorScreen('Домен не добавлен в разрешенные. Добавьте ' + window.location.hostname + ' в настройках Firebase.');
+          } else {
+            document.getElementById('authMessage').textContent = 'Ошибка: ' + e.message;
+          }
         }
       });
     }
 
     // ============================================================
-    // 3.5 - ЭКРАН "ПИСЬМО ОТПРАВЛЕНО"
+    // ЭКРАН "ПИСЬМО ОТПРАВЛЕНО"
     // ============================================================
     function showEmailSentScreen(email) {
       render(`
@@ -557,7 +620,7 @@
     }
 
     // ============================================================
-    // 3.6 - ЭКРАН СОЗДАНИЯ ПРОФИЛЯ
+    // ЭКРАН СОЗДАНИЯ ПРОФИЛЯ
     // ============================================================
     function showProfileSetup() {
       render(`
@@ -600,8 +663,14 @@
       document.getElementById('createProfileBtn').addEventListener('click', async () => {
         const name = document.getElementById('profileName').value.trim();
         const username = document.getElementById('profileUsername').value.trim();
-        if (!name || !username) return alert('Заполните все поля');
-        if (!usernameAvailable) return alert('Username занят или не проверен');
+        if (!name || !username) {
+          document.getElementById('profileError').textContent = 'Заполните все поля';
+          return;
+        }
+        if (!usernameAvailable) {
+          document.getElementById('profileError').textContent = 'Username занят или не проверен';
+          return;
+        }
         if (!currentUser) return;
         try {
           await setDoc(doc(db, 'users', currentUser.uid), {
@@ -620,7 +689,7 @@
     }
 
     // ============================================================
-    // 3.7 - ГЛАВНЫЙ ЭКРАН
+    // ГЛАВНЫЙ ЭКРАН
     // ============================================================
     function showMainScreen() {
       render(`
@@ -647,7 +716,6 @@
         </div>
       `);
       
-      // Поиск пользователей
       document.getElementById('globalSearch').addEventListener('input', async (e) => {
         const q = e.target.value.trim();
         if (q.length < 2) {
@@ -677,7 +745,7 @@
           
           document.querySelectorAll('.user-item').forEach(el => {
             el.addEventListener('click', () => {
-              alert('Чат с пользователем (демо)');
+              alert('💬 Чат с пользователем (демо)');
             });
           });
         } catch(e) {
@@ -687,10 +755,14 @@
       
       document.getElementById('navSettings').addEventListener('click', showSettingsScreen);
       document.getElementById('addGroupBtn').addEventListener('click', showCreateGroupModal);
+      document.getElementById('navChats').addEventListener('click', () => {
+        document.getElementById('globalSearch').value = '';
+        document.getElementById('globalSearch').dispatchEvent(new Event('input'));
+      });
     }
 
     // ============================================================
-    // 3.8 - ЭКРАН НАСТРОЕК
+    // ЭКРАН НАСТРОЕК
     // ============================================================
     function showSettingsScreen() {
       render(`
@@ -700,10 +772,10 @@
             <button class="round-btn" id="backFromSettings" style="background:#3a3a44; font-size:20px;">←</button>
           </div>
           <div class="settings-card" style="display:flex; gap:16px; align-items:center;">
-            <img id="profilePhotoPreview" src="${currentUserData?.photo || ''}" class="avatar-large" style="width:64px;height:64px;" />
+            <img id="profilePhotoPreview" src="${currentUserData?.photo || ''}" class="avatar-large" style="width:64px;height:64px;border-radius:40px;" />
             <div>
-              <strong>${currentUserData?.name}</strong><br>
-              <span style="color:#8e8e9a;">@${currentUserData?.username}</span>
+              <strong>${currentUserData?.name || 'Пользователь'}</strong><br>
+              <span style="color:#8e8e9a;">@${currentUserData?.username || ''}</span>
             </div>
           </div>
           <div class="settings-card">
@@ -723,13 +795,14 @@
       document.getElementById('backFromSettings').addEventListener('click', showMainScreen);
       
       document.getElementById('logoutBtn').addEventListener('click', async () => {
-        await signOut(auth);
-        currentUser = null;
-        currentUserData = null;
-        showAuthScreen();
+        if (confirm('Вы уверены?')) {
+          await signOut(auth);
+          currentUser = null;
+          currentUserData = null;
+          showAuthScreen();
+        }
       });
       
-      // Переключение темы
       const themeSwitch = document.getElementById('themeSwitch');
       themeSwitch.addEventListener('click', () => {
         const overlay = document.createElement('div');
@@ -748,7 +821,6 @@
         }, 500);
       });
       
-      // Изменение фото
       document.getElementById('changePhotoBtn').addEventListener('click', () => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -757,32 +829,35 @@
           const file = e.target.files[0];
           if (!file) return;
           try {
-            const ref = ref(storage, `profiles/${currentUser.uid}`);
-            await uploadBytes(ref, file);
-            const url = await getDownloadURL(ref);
+            const fileRef = ref(storage, `profiles/${currentUser.uid}`);
+            await uploadBytes(fileRef, file);
+            const url = await getDownloadURL(fileRef);
             await updateDoc(doc(db, 'users', currentUser.uid), { photo: url });
             currentUserData.photo = url;
             document.getElementById('profilePhotoPreview').src = url;
+            alert('✅ Фото обновлено!');
           } catch(err) {
-            alert('Ошибка загрузки');
+            alert('❌ Ошибка: ' + err.message);
           }
         };
         input.click();
       });
       
-      // Изменение имени
       document.getElementById('changeNameBtn').addEventListener('click', () => {
         const newName = prompt('Новое имя:', currentUserData?.name || '');
         if (newName && newName.trim()) {
-          updateDoc(doc(db, 'users', currentUser.uid), { name: newName.trim() });
-          currentUserData.name = newName.trim();
-          showSettingsScreen();
+          updateDoc(doc(db, 'users', currentUser.uid), { name: newName.trim() })
+            .then(() => {
+              currentUserData.name = newName.trim();
+              showSettingsScreen();
+            })
+            .catch(err => alert('Ошибка: ' + err.message));
         }
       });
     }
 
     // ============================================================
-    // 3.9 - СОЗДАНИЕ ГРУППЫ
+    // СОЗДАНИЕ ГРУППЫ
     // ============================================================
     function showCreateGroupModal() {
       const overlay = document.createElement('div');
@@ -801,7 +876,10 @@
       
       document.getElementById('createGroupFinal').addEventListener('click', async () => {
         const name = document.getElementById('groupName').value.trim();
-        if (!name) return alert('Введите название');
+        if (!name) {
+          alert('Введите название');
+          return;
+        }
         try {
           const groupRef = doc(collection(db, 'groups'));
           await setDoc(groupRef, {
@@ -812,49 +890,63 @@
             createdAt: serverTimestamp()
           });
           overlay.remove();
-          alert('Группа создана!');
+          alert('✅ Группа создана!');
           showMainScreen();
         } catch(e) {
-          alert('Ошибка: ' + e.message);
+          alert('❌ Ошибка: ' + e.message);
         }
       });
     }
 
     // ============================================================
-    // 3.10 - ОБРАБОТЧИК СОСТОЯНИЯ АВТОРИЗАЦИИ
+    // ОБРАБОТЧИК СОСТОЯНИЯ АВТОРИЗАЦИИ
     // ============================================================
     onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        currentUser = user;
-        const docSnap = await getDoc(doc(db, 'users', user.uid));
-        if (docSnap.exists()) {
-          currentUserData = docSnap.data();
-          showMainScreen();
-        } else {
-          showProfileSetup();
-        }
-      } else {
-        if (isSignInWithEmailLink(auth, window.location.href)) {
-          let email = localStorage.getItem('emailForSignIn');
-          if (!email) email = prompt('Введите email для входа');
-          try {
-            await signInWithEmailLink(auth, email, window.location.href);
-            localStorage.removeItem('emailForSignIn');
-            window.location.href = window.location.href.split('?')[0];
-          } catch(e) {
-            alert('Ошибка входа: ' + e.message);
+      try {
+        if (user) {
+          console.log('✅ Пользователь:', user.email);
+          currentUser = user;
+          const docSnap = await getDoc(doc(db, 'users', user.uid));
+          if (docSnap.exists()) {
+            currentUserData = docSnap.data();
+            showMainScreen();
+          } else {
+            showProfileSetup();
           }
         } else {
-          showAuthScreen();
+          if (isSignInWithEmailLink(auth, window.location.href)) {
+            let email = localStorage.getItem('emailForSignIn');
+            if (!email) {
+              email = prompt('Введите email для входа');
+            }
+            if (email) {
+              try {
+                await signInWithEmailLink(auth, email, window.location.href);
+                localStorage.removeItem('emailForSignIn');
+                window.history.replaceState({}, document.title, window.location.pathname);
+              } catch(e) {
+                alert('Ошибка входа: ' + e.message);
+                showAuthScreen();
+              }
+            }
+          } else {
+            showAuthScreen();
+          }
         }
+      } catch (error) {
+        console.error('Ошибка:', error);
+        showAuthScreen();
       }
     });
 
     // ============================================================
-    // 3.11 - ИНИЦИАЛИЗАЦИЯ ТЕМЫ (ТЁМНАЯ ПО УМОЛЧАНИЮ)
+    // ИНИЦИАЛИЗАЦИЯ
     // ============================================================
     document.body.classList.remove('light');
     theme = 'dark';
+    console.log('🚀 J Messenger запущен');
+    console.log('📍 Текущий домен:', window.location.hostname);
+    console.log('📌 Если ошибка, добавьте домен в Firebase Console');
   </script>
 </body>
 </html>
