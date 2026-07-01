@@ -328,16 +328,6 @@
       white-space: nowrap;
     }
 
-    .status-badge {
-      display: inline-block;
-      font-size: 12px;
-      padding: 2px 12px;
-      border-radius: 40px;
-      background: #2e8b57;
-      color: white;
-      margin-left: 8px;
-    }
-
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -465,7 +455,6 @@
       box-shadow: 0 0 100px #f5b342;
     }
 
-    /* Чат */
     .chat-container {
       display: flex;
       flex-direction: column;
@@ -595,44 +584,6 @@
       color: #8e8e9a;
       font-size: 16px;
     }
-
-    .domain-error {
-      background: #2a1a1a;
-      border: 1px solid #ff6b6b;
-      border-radius: 16px;
-      padding: 20px;
-      margin: 10px 0;
-    }
-
-    .domain-error h3 {
-      color: #ff6b6b;
-      margin-bottom: 10px;
-    }
-
-    .domain-error code {
-      display: block;
-      background: #1a1a1a;
-      padding: 10px;
-      border-radius: 8px;
-      margin: 10px 0;
-      font-size: 14px;
-      color: #4cd964;
-      word-break: break-all;
-    }
-
-    .chat-item .avatar-small {
-      position: relative;
-    }
-
-    .chat-item .unread-badge {
-      background: #e87a4b;
-      color: white;
-      border-radius: 50%;
-      padding: 2px 8px;
-      font-size: 11px;
-      font-weight: 600;
-      margin-left: 8px;
-    }
   </style>
 </head>
 <body>
@@ -692,7 +643,7 @@
     }
 
     // ============================================================
-    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ АВАТАРОК
+    // АВАТАРКИ - ИСПРАВЛЕНО
     // ============================================================
     function getInitials(name) {
       if (!name) return '?';
@@ -713,10 +664,15 @@
       const initials = getInitials(name);
       const color = getAvatarColor(uid);
       
-      if (photoURL && photoURL !== '') {
-        return `<img src="${photoURL}" class="${sizeClass}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\"${sizeClass}\\" style=\\"background:${color};\\">${initials}</div>'">`;
+      // Если есть фото - показываем его
+      if (photoURL && photoURL !== '' && photoURL !== 'null' && photoURL !== 'undefined') {
+        // Добавляем кэш-бастер для обновления фото
+        const cacheBuster = `?v=${Date.now()}`;
+        return `<img src="${photoURL}${cacheBuster}" class="${sizeClass}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\"${sizeClass}\\" style=\\"background:${color};display:flex;align-items:center;justify-content:center;\\">${initials}</div>'">`;
       }
-      return `<div class="${sizeClass}" style="background:${color};">${initials}</div>`;
+      
+      // Иначе показываем инициалы
+      return `<div class="${sizeClass}" style="background:${color};display:flex;align-items:center;justify-content:center;">${initials}</div>`;
     }
 
     // ============================================================
@@ -847,7 +803,7 @@
     }
 
     // ============================================================
-    // ГЛАВНЫЙ ЭКРАН - СПИСОК ЧАТОВ
+    // ГЛАВНЫЙ ЭКРАН
     // ============================================================
     function showMainScreen() {
       if (chatUnsubscribe) {
@@ -884,10 +840,8 @@
         </div>
       `);
       
-      // Загружаем список чатов
       loadChatList();
       
-      // Поиск пользователей
       document.getElementById('globalSearch').addEventListener('input', async (e) => {
         const q = e.target.value.trim();
         if (q.length < 2) {
@@ -942,8 +896,6 @@
       const chatListEl = document.getElementById('chatList');
       if (!chatListEl) return;
       
-      // Ищем все чаты, где участвует пользователь
-      // Используем коллекцию chats для хранения метаданных чатов
       const chatsRef = collection(db, 'chats');
       const q = query(chatsRef, where('members', 'array-contains', currentUser.uid));
       
@@ -952,75 +904,79 @@
       }
       
       chatsUnsubscribe = onSnapshot(q, async (snapshot) => {
-        let html = '';
+        console.log('📝 Обновление списка чатов, найдено:', snapshot.size);
         
         if (snapshot.empty) {
-          html = `
+          chatListEl.innerHTML = `
             <div class="empty-state">
               <span>😔</span>
               <p>Пока тут никого нет</p>
               <p style="font-size:14px;">Найдите кого-то, чтобы начать общение 💬</p>
             </div>
           `;
-          chatListEl.innerHTML = html;
           return;
         }
         
-        // Собираем все чаты с последними сообщениями
-        const chatPromises = [];
-        snapshot.forEach(doc => {
-          const chatData = doc.data();
+        const chatData = [];
+        for (const doc of snapshot.docs) {
+          const data = doc.data();
           const chatId = doc.id;
-          // Находим собеседника
-          const otherUid = chatData.members.find(m => m !== currentUser.uid);
+          const otherUid = data.members.find(m => m !== currentUser.uid);
           
-          chatPromises.push(
-            getDoc(doc(db, 'users', otherUid))
-              .then(userDoc => {
-                if (!userDoc.exists()) return null;
-                const userData = userDoc.data();
-                return {
-                  chatId,
-                  otherUid,
-                  userData,
-                  lastMessage: null,
-                  lastMessageTime: null
-                };
-              })
-          );
-        });
-        
-        const chats = await Promise.all(chatPromises);
-        const validChats = chats.filter(c => c !== null);
-        
-        // Для каждого чата получаем последнее сообщение
-        for (const chat of validChats) {
-          const messagesRef = collection(db, 'chats', chat.chatId, 'messages');
-          const msgQuery = query(messagesRef, orderBy('createdAt', 'desc'), limit(1));
-          const msgSnap = await getDocs(msgQuery);
-          if (!msgSnap.empty) {
-            const msgData = msgSnap.docs[0].data();
-            chat.lastMessage = msgData.text;
-            chat.lastMessageTime = msgData.createdAt;
+          if (!otherUid) continue;
+          
+          try {
+            const userDoc = await getDoc(doc(db, 'users', otherUid));
+            if (!userDoc.exists()) continue;
+            
+            const userData = userDoc.data();
+            
+            const messagesRef = collection(db, 'chats', chatId, 'messages');
+            const msgQuery = query(messagesRef, orderBy('createdAt', 'desc'), limit(1));
+            const msgSnap = await getDocs(msgQuery);
+            
+            let lastMessage = 'Нет сообщений';
+            let lastMessageTime = null;
+            let lastMessageSender = null;
+            
+            if (!msgSnap.empty) {
+              const msgData = msgSnap.docs[0].data();
+              lastMessage = msgData.text || 'Сообщение';
+              lastMessageTime = msgData.createdAt;
+              lastMessageSender = msgData.senderId;
+            }
+            
+            chatData.push({
+              chatId,
+              otherUid,
+              userData,
+              lastMessage,
+              lastMessageTime,
+              lastMessageSender
+            });
+          } catch(e) {
+            console.error('Ошибка загрузки чата:', e);
           }
         }
         
-        // Сортируем по времени последнего сообщения
-        validChats.sort((a, b) => {
+        chatData.sort((a, b) => {
           if (!a.lastMessageTime) return 1;
           if (!b.lastMessageTime) return -1;
           return b.lastMessageTime.seconds - a.lastMessageTime.seconds;
         });
         
-        // Рендерим чаты
-        for (const chat of validChats) {
-          const time = chat.lastMessageTime ? new Date(chat.lastMessageTime.seconds * 1000).toLocaleTimeString() : '';
+        let html = '';
+        for (const chat of chatData) {
+          const time = chat.lastMessageTime ? new Date(chat.lastMessageTime.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+          const isFromMe = chat.lastMessageSender === currentUser.uid;
+          const messagePreview = isFromMe ? `Вы: ${chat.lastMessage}` : chat.lastMessage;
+          
           html += `
             <div class="chat-item" data-uid="${chat.otherUid}" data-name="${chat.userData.name}" data-username="${chat.userData.username}">
               ${createAvatarHTML(chat.otherUid, chat.userData.name, chat.userData.photo, 'small')}
               <div class="chat-info">
                 <div class="chat-name">${chat.userData.name}</div>
-                <div class="chat-last-message">${chat.lastMessage || 'Нет сообщений'}</div>
+                <div class="chat-last-message">${messagePreview}</div>
               </div>
               <div class="chat-time">${time}</div>
             </div>
@@ -1038,7 +994,7 @@
           });
         });
       }, (error) => {
-        console.error('Ошибка загрузки чатов:', error);
+        console.error('❌ Ошибка загрузки чатов:', error);
         chatListEl.innerHTML = '<div class="empty-state">Ошибка загрузки чатов</div>';
       });
     }
@@ -1055,17 +1011,27 @@
       currentChatUser = { uid: otherUid, name: otherName, username: otherUsername };
       const chatId = [currentUser.uid, otherUid].sort().join('_');
       
-      // Создаем документ чата если его нет
       setDoc(doc(db, 'chats', chatId), {
         members: [currentUser.uid, otherUid],
         createdAt: serverTimestamp()
-      }, { merge: true });
+      }, { merge: true }).catch(e => console.error('Ошибка создания чата:', e));
+      
+      // Получаем фото пользователя для отображения в чате
+      getDoc(doc(db, 'users', otherUid)).then(userDoc => {
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          // Обновляем фото в currentChatUser
+          currentChatUser.photo = userData.photo || null;
+        }
+      });
       
       render(`
         <div>
           <div class="chat-header">
             <button class="round-btn-back" id="backFromChat">←</button>
-            ${createAvatarHTML(otherUid, otherName, null, 'small')}
+            <div id="chatAvatarContainer">
+              ${createAvatarHTML(otherUid, otherName, null, 'small')}
+            </div>
             <div>
               <h2>${otherName}</h2>
               <span class="status">● @${otherUsername}</span>
@@ -1082,6 +1048,17 @@
           </div>
         </div>
       `);
+      
+      // Обновляем аватарку в чате после загрузки
+      getDoc(doc(db, 'users', otherUid)).then(userDoc => {
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const container = document.getElementById('chatAvatarContainer');
+          if (container) {
+            container.innerHTML = createAvatarHTML(otherUid, otherName, userData.photo, 'small');
+          }
+        }
+      });
       
       document.getElementById('backFromChat').addEventListener('click', () => {
         if (chatUnsubscribe) {
@@ -1101,7 +1078,7 @@
         snapshot.forEach(doc => {
           const data = doc.data();
           const isSent = data.senderId === currentUser.uid;
-          const time = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString() : '';
+          const time = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
           html += `
             <div class="message ${isSent ? 'sent' : 'received'}">
               ${data.text}
@@ -1230,23 +1207,23 @@
           if (!file) return;
           
           try {
-            // Показываем загрузку
             const container = document.getElementById('profilePhotoContainer');
-            container.innerHTML = '<div class="avatar-large" style="background:#3a3a44;animation:pulse 1s infinite;">⏳</div>';
+            container.innerHTML = '<div class="avatar-large" style="background:#3a3a44;display:flex;align-items:center;justify-content:center;">⏳</div>';
             
             const fileRef = ref(storage, `profiles/${currentUser.uid}`);
             await uploadBytes(fileRef, file);
             const url = await getDownloadURL(fileRef);
+            
+            // Сохраняем URL в Firestore
             await updateDoc(doc(db, 'users', currentUser.uid), { photo: url });
             currentUserData.photo = url;
             
-            // Обновляем отображение
+            // Обновляем отображение с кэш-бастером
             container.innerHTML = createAvatarHTML(currentUser.uid, currentUserData?.name, url, 'large');
             alert('✅ Фото обновлено!');
           } catch(err) {
             alert('❌ Ошибка загрузки: ' + err.message);
             console.error('Ошибка загрузки фото:', err);
-            // Восстанавливаем
             const container = document.getElementById('profilePhotoContainer');
             container.innerHTML = createAvatarHTML(currentUser.uid, currentUserData?.name, currentUserData?.photo, 'large');
           }
@@ -1352,7 +1329,7 @@
     document.body.classList.remove('light');
     theme = 'dark';
     console.log('🚀 J Messenger запущен');
-    console.log('✅ Исправлены: список чатов и загрузка фото');
+    console.log('✅ Исправлены: список чатов и отображение фото');
   </script>
 </body>
 </html>
