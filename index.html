@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>J Messenger</title>
   
+  <!-- ============================================================ -->
+  <!-- ЧАСТЬ 1: ИМПОРТЫ FIREBASE -->
+  <!-- ============================================================ -->
   <script type="importmap">
     {
       "imports": {
@@ -16,10 +19,842 @@
     }
   </script>
   
-  <link rel="stylesheet" href="style.css">
+  <!-- ============================================================ -->
+  <!-- ЧАСТЬ 2: ВСЕ СТИЛИ (CSS) -->
+  <!-- ============================================================ -->
+  <style>
+    /* ============================================================
+       ГЛОБАЛЬНЫЕ СБРОСЫ И БАЗОВЫЕ СТИЛИ
+       ============================================================ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    body {
+      background-color: #0f0f12;
+      color: #e4e6eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 16px;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 480px;
+      background: #1e1e24;
+      border-radius: 36px;
+      padding: 24px 20px 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      min-height: 700px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(2px);
+    }
+
+    /* ============================================================
+       СВЕТЛАЯ ТЕМА
+       ============================================================ */
+    body.light #app {
+      background: #ffffff;
+      color: #1e1e24;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    }
+
+    body.light {
+      background: #f5f3f0;
+    }
+
+    body.light input,
+    body.light .search-box,
+    body.light .settings-card {
+      background: #f0eeeb;
+      color: #1e1e24;
+    }
+
+    body.light .btn-primary {
+      background: #e87a4b;
+      color: white;
+    }
+
+    body.light .btn-primary:hover {
+      background: #d96c3e;
+    }
+
+    body.light .header,
+    body.light .footer-nav {
+      background: transparent;
+    }
+
+    body.light .user-item,
+    body.light .group-item {
+      background: #f8f7f5;
+    }
+
+    body.light .modal-content {
+      background: #ffffff;
+      color: #1e1e24;
+    }
+
+    /* ============================================================
+       ОБЩИЕ КОМПОНЕНТЫ
+       ============================================================ */
+    .hidden {
+      display: none !important;
+    }
+
+    .flex-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 60px;
+      border: 1px solid #3a3a44;
+      background: #2a2a32;
+      color: #f0f0f5;
+      font-size: 16px;
+      outline: none;
+      margin: 10px 0;
+    }
+
+    .input-field:focus {
+      border-color: #e87a4b;
+    }
+
+    .btn-primary {
+      background: #e87a4b;
+      color: white;
+      border: none;
+      border-radius: 60px;
+      padding: 14px 24px;
+      font-size: 18px;
+      font-weight: 600;
+      width: 100%;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 6px 14px rgba(232, 122, 75, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: #d96c3e;
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid #4a4a55;
+      color: #e4e6eb;
+      border-radius: 60px;
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 40px;
+      object-fit: cover;
+      background: #3a3a44;
+    }
+
+    .avatar-large {
+      width: 100px;
+      height: 100px;
+      border-radius: 60px;
+      object-fit: cover;
+      background: #3a3a44;
+      margin-bottom: 12px;
+    }
+
+    /* ============================================================
+       ШАПКА И НАВИГАЦИЯ
+       ============================================================ */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0 12px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #f0935e, #e87a4b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .round-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 40px;
+      background: #e87a4b;
+      border: none;
+      color: white;
+      font-size: 28px;
+      font-weight: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(232, 122, 75, 0.4);
+    }
+
+    .search-box {
+      background: #2a2a32;
+      border-radius: 40px;
+      padding: 10px 18px;
+      margin: 8px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #e4e6eb;
+      width: 100%;
+      font-size: 16px;
+    }
+
+    .footer-nav {
+      display: flex;
+      justify-content: space-around;
+      padding: 16px 0 4px;
+      border-top: 1px solid #2e2e38;
+      margin-top: 20px;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #8e8e9a;
+      font-size: 14px;
+      cursor: pointer;
+      gap: 4px;
+    }
+
+    .nav-item.active {
+      color: #e87a4b;
+    }
+
+    /* ============================================================
+       КАРТОЧКИ ПОЛЬЗОВАТЕЛЕЙ И ГРУПП
+       ============================================================ */
+    .user-item,
+    .group-item {
+      background: #26262e;
+      padding: 12px 16px;
+      border-radius: 24px;
+      margin: 6px 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+    }
+
+    .status-badge {
+      display: inline-block;
+      font-size: 12px;
+      padding: 2px 12px;
+      border-radius: 40px;
+      background: #2e8b57;
+      color: white;
+      margin-left: 8px;
+    }
+
+    /* ============================================================
+       МОДАЛЬНЫЕ ОКНА
+       ============================================================ */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal-content {
+      background: #1e1e24;
+      padding: 28px 24px;
+      border-radius: 48px;
+      max-width: 400px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* ============================================================
+       ПРОВЕРКА USERNAME
+       ============================================================ */
+    .username-check {
+      font-size: 14px;
+      margin: 4px 0 12px;
+    }
+
+    .green {
+      color: #4cd964;
+    }
+
+    .red {
+      color: #ff6b6b;
+    }
+
+    /* ============================================================
+       НАСТРОЙКИ ТЕМЫ
+       ============================================================ */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #2e2e38;
+    }
+
+    .theme-switch {
+      width: 52px;
+      height: 28px;
+      background: #3a3a44;
+      border-radius: 40px;
+      position: relative;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .theme-switch .thumb {
+      width: 22px;
+      height: 22px;
+      background: #f0e68c;
+      border-radius: 40px;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: 0.3s;
+    }
+
+    body.light .theme-switch {
+      background: #e0d6c8;
+    }
+
+    body.light .theme-switch .thumb {
+      left: 27px;
+      background: #f5b342;
+    }
+
+    .settings-card {
+      background: #26262e;
+      border-radius: 28px;
+      padding: 16px;
+      margin: 8px 0;
+    }
+
+    /* ============================================================
+       ПУСТОЕ СОСТОЯНИЕ
+       ============================================================ */
+    .empty-state {
+      text-align: center;
+      padding: 40px 0;
+      color: #8e8e9a;
+    }
+
+    .empty-state span {
+      font-size: 48px;
+    }
+
+    /* ============================================================
+       АНИМАЦИЯ ПЕРЕКЛЮЧЕНИЯ ТЕМЫ
+       ============================================================ */
+    .theme-animation-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-icon-anim {
+      width: 120px;
+      height: 120px;
+      background: #f0e68c;
+      border-radius: 60px;
+      box-shadow: 0 0 80px #f0e68c;
+      transition: 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform: scale(0.2);
+      opacity: 0;
+    }
+
+    .theme-icon-anim.active {
+      transform: scale(1.2);
+      opacity: 0.9;
+    }
+
+    body.light .theme-icon-anim {
+      background: #f5b342;
+      box-shadow: 0 0 100px #f5b342;
+    }
+
+    /* ============================================================
+       АДАПТИВНОСТЬ
+       ============================================================ */
+    @media (max-width: 480px) {
+      #app {
+        padding: 16px;
+        min-height: 90vh;
+        border-radius: 28px;
+      }
+    }
+  </style>
 </head>
 <body>
   <div id="app"></div>
-  <script type="module" src="script.js"></script>
+  
+  <!-- ============================================================ -->
+  <!-- ЧАСТЬ 3: ВЕСЬ JAVASCRIPT -->
+  <!-- ============================================================ -->
+  <script type="module">
+    // ============================================================
+    // 3.1 - ИНИЦИАЛИЗАЦИЯ FIREBASE
+    // ============================================================
+    import { initializeApp } from "firebase/app";
+    import { 
+      getAuth, 
+      sendSignInLinkToEmail, 
+      isSignInWithEmailLink, 
+      signInWithEmailLink,
+      onAuthStateChanged,
+      signOut
+    } from "firebase/auth";
+    import { 
+      getFirestore, 
+      doc, getDoc, setDoc, updateDoc, 
+      collection, query, where, getDocs,
+      serverTimestamp
+    } from "firebase/firestore";
+    import { 
+      getStorage, ref, uploadBytes, getDownloadURL 
+    } from "firebase/storage";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBI7VB0zTARMTKEj1tVr_VwzfoQ6bJw0x0",
+      authDomain: "jmessenger-519cf.firebaseapp.com",
+      projectId: "jmessenger-519cf",
+      storageBucket: "jmessenger-519cf.firebasestorage.app",
+      messagingSenderId: "339570238049",
+      appId: "1:339570238049:web:01d8a317f99314ddefc020",
+      measurementId: "G-YPYR4B4HCV"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // ============================================================
+    // 3.2 - ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+    // ============================================================
+    let currentUser = null;
+    let currentUserData = null;
+    let theme = 'dark';
+    const appEl = document.getElementById('app');
+
+    // ============================================================
+    // 3.3 - ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    // ============================================================
+    function render(html) {
+      appEl.innerHTML = html;
+    }
+
+    // ============================================================
+    // 3.4 - ЭКРАН АВТОРИЗАЦИИ
+    // ============================================================
+    function showAuthScreen() {
+      render(`
+        <div class="flex-center" style="padding: 20px 0;">
+          <h1 style="font-size: 38px; font-weight: 800; background: linear-gradient(135deg,#f0935e,#e87a4b); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+            J Messenger
+          </h1>
+          <p style="color: #a0a0b0; margin: 6px 0 30px;">Соединяя людей мгновенно</p>
+          <p style="color: #b0b0bc; text-align: center; font-size: 14px; max-width: 280px;">
+            Для входа или регистрации подтвердите свою электронную почту.
+          </p>
+          <p style="color: #7a7a88; font-size: 13px; margin-top: 6px;">
+            Если письмо не пришло, проверьте папку "Спам".
+          </p>
+          <input id="emailInput" class="input-field" type="email" placeholder="Email" value="">
+          <button id="sendLinkBtn" class="btn-primary" style="margin-top: 12px;">Продолжить</button>
+          <div id="authMessage" style="margin-top: 16px; color: #ff6b6b; font-size: 14px;"></div>
+        </div>
+      `);
+      
+      document.getElementById('sendLinkBtn').addEventListener('click', async () => {
+        const email = document.getElementById('emailInput').value.trim();
+        if (!email) return alert('Введите email');
+        try {
+          const actionCodeSettings = { 
+            url: window.location.href, 
+            handleCodeInApp: true 
+          };
+          await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+          localStorage.setItem('emailForSignIn', email);
+          showEmailSentScreen(email);
+        } catch(e) {
+          document.getElementById('authMessage').textContent = 'Ошибка: ' + e.message;
+        }
+      });
+    }
+
+    // ============================================================
+    // 3.5 - ЭКРАН "ПИСЬМО ОТПРАВЛЕНО"
+    // ============================================================
+    function showEmailSentScreen(email) {
+      render(`
+        <div class="flex-center" style="padding: 40px 0;">
+          <span style="font-size: 72px;">📨</span>
+          <h2 style="margin: 20px 0 10px;">Письмо отправлено</h2>
+          <p style="text-align:center; color:#b0b0bc;">
+            Мы отправили ссылку на <strong>${email}</strong>
+          </p>
+          <p style="text-align:center; color:#8e8e9a; margin-top: 10px;">
+            Откройте письмо и перейдите по ссылке.<br>
+            После подтверждения вход произойдёт автоматически.
+          </p>
+        </div>
+      `);
+    }
+
+    // ============================================================
+    // 3.6 - ЭКРАН СОЗДАНИЯ ПРОФИЛЯ
+    // ============================================================
+    function showProfileSetup() {
+      render(`
+        <div class="flex-center" style="padding: 8px 0;">
+          <h2 style="margin-bottom: 16px;">Создание профиля</h2>
+          <input id="profileName" class="input-field" placeholder="Имя" value="">
+          <input id="profileUsername" class="input-field" placeholder="Username" value="">
+          <div id="usernameCheck" class="username-check">Username должен быть уникальным.</div>
+          <button id="createProfileBtn" class="btn-primary" style="margin-top: 8px;">Создать профиль</button>
+          <div id="profileError" style="color:#ff6b6b; margin-top: 12px;"></div>
+        </div>
+      `);
+      
+      const usernameInput = document.getElementById('profileUsername');
+      const checkDiv = document.getElementById('usernameCheck');
+      let usernameAvailable = false;
+      
+      usernameInput.addEventListener('input', async () => {
+        const val = usernameInput.value.trim();
+        if (val.length < 3) {
+          checkDiv.innerHTML = 'Username должен быть уникальным.';
+          return;
+        }
+        try {
+          const q = query(collection(db, 'users'), where('username', '==', val));
+          const snap = await getDocs(q);
+          const taken = !snap.empty;
+          if (taken) {
+            checkDiv.innerHTML = '🔴 Username уже занят';
+            usernameAvailable = false;
+          } else {
+            checkDiv.innerHTML = '🟢 Username свободен';
+            usernameAvailable = true;
+          }
+        } catch(e) {
+          checkDiv.innerHTML = 'Ошибка проверки';
+        }
+      });
+      
+      document.getElementById('createProfileBtn').addEventListener('click', async () => {
+        const name = document.getElementById('profileName').value.trim();
+        const username = document.getElementById('profileUsername').value.trim();
+        if (!name || !username) return alert('Заполните все поля');
+        if (!usernameAvailable) return alert('Username занят или не проверен');
+        if (!currentUser) return;
+        try {
+          await setDoc(doc(db, 'users', currentUser.uid), {
+            uid: currentUser.uid,
+            name,
+            username,
+            photo: '',
+            createdAt: serverTimestamp()
+          });
+          currentUserData = { name, username, photo: '' };
+          showMainScreen();
+        } catch(e) {
+          document.getElementById('profileError').textContent = 'Ошибка: ' + e.message;
+        }
+      });
+    }
+
+    // ============================================================
+    // 3.7 - ГЛАВНЫЙ ЭКРАН
+    // ============================================================
+    function showMainScreen() {
+      render(`
+        <div>
+          <div class="header">
+            <h1>J Messenger</h1>
+            <button id="addGroupBtn" class="round-btn">+</button>
+          </div>
+          <div class="search-box">
+            <span>🔍</span>
+            <input id="globalSearch" placeholder="Поиск пользователей..." />
+          </div>
+          <div id="chatList">
+            <div class="empty-state">
+              <span>😔</span>
+              <p>Пока тут никого нет</p>
+              <p style="font-size:14px;">Найдите кого-то, чтобы начать общение 💬</p>
+            </div>
+          </div>
+          <div class="footer-nav">
+            <div class="nav-item active" id="navChats">💬 Чаты</div>
+            <div class="nav-item" id="navSettings">⚙️ Настройки</div>
+          </div>
+        </div>
+      `);
+      
+      // Поиск пользователей
+      document.getElementById('globalSearch').addEventListener('input', async (e) => {
+        const q = e.target.value.trim();
+        if (q.length < 2) {
+          document.getElementById('chatList').innerHTML = 
+            `<div class="empty-state"><span>😔</span><p>Введите минимум 2 символа</p></div>`;
+          return;
+        }
+        try {
+          const usersRef = collection(db, 'users');
+          const qSnap = await getDocs(query(usersRef, where('username', '>=', q), where('username', '<=', q + '\uf8ff')));
+          let html = '';
+          qSnap.forEach(doc => {
+            const data = doc.data();
+            if (data.uid === currentUser.uid) return;
+            html += `
+              <div class="user-item" data-uid="${data.uid}">
+                <span class="avatar" style="background:#3a3a44;">${data.name?.[0]||'U'}</span>
+                <div>
+                  <strong>${data.name}</strong> 
+                  <span style="color:#8e8e9a;">@${data.username}</span>
+                </div>
+              </div>
+            `;
+          });
+          document.getElementById('chatList').innerHTML = html || 
+            '<div class="empty-state">Никого не найдено</div>';
+          
+          document.querySelectorAll('.user-item').forEach(el => {
+            el.addEventListener('click', () => {
+              alert('Чат с пользователем (демо)');
+            });
+          });
+        } catch(e) {
+          console.error(e);
+        }
+      });
+      
+      document.getElementById('navSettings').addEventListener('click', showSettingsScreen);
+      document.getElementById('addGroupBtn').addEventListener('click', showCreateGroupModal);
+    }
+
+    // ============================================================
+    // 3.8 - ЭКРАН НАСТРОЕК
+    // ============================================================
+    function showSettingsScreen() {
+      render(`
+        <div>
+          <div class="header">
+            <h1>Настройки</h1>
+            <button class="round-btn" id="backFromSettings" style="background:#3a3a44; font-size:20px;">←</button>
+          </div>
+          <div class="settings-card" style="display:flex; gap:16px; align-items:center;">
+            <img id="profilePhotoPreview" src="${currentUserData?.photo || ''}" class="avatar-large" style="width:64px;height:64px;" />
+            <div>
+              <strong>${currentUserData?.name}</strong><br>
+              <span style="color:#8e8e9a;">@${currentUserData?.username}</span>
+            </div>
+          </div>
+          <div class="settings-card">
+            <button id="changePhotoBtn" class="btn-secondary" style="width:100%; margin:6px 0;">Изменить фото</button>
+            <button id="changeNameBtn" class="btn-secondary" style="width:100%; margin:6px 0;">Изменить имя</button>
+          </div>
+          <div class="settings-card">
+            <div class="theme-toggle">
+              <span>🌙 Тёмная тема / ☀️ Светлая</span>
+              <div id="themeSwitch" class="theme-switch"><div class="thumb"></div></div>
+            </div>
+          </div>
+          <button id="logoutBtn" class="btn-secondary" style="width:100%; margin-top:16px; color:#ff6b6b;">Выйти из аккаунта</button>
+        </div>
+      `);
+      
+      document.getElementById('backFromSettings').addEventListener('click', showMainScreen);
+      
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await signOut(auth);
+        currentUser = null;
+        currentUserData = null;
+        showAuthScreen();
+      });
+      
+      // Переключение темы
+      const themeSwitch = document.getElementById('themeSwitch');
+      themeSwitch.addEventListener('click', () => {
+        const overlay = document.createElement('div');
+        overlay.className = 'theme-animation-overlay';
+        const icon = document.createElement('div');
+        icon.className = 'theme-icon-anim';
+        overlay.appendChild(icon);
+        document.body.appendChild(overlay);
+        
+        setTimeout(() => icon.classList.add('active'), 40);
+        setTimeout(() => {
+          const isLight = document.body.classList.toggle('light');
+          theme = isLight ? 'light' : 'dark';
+          icon.classList.remove('active');
+          setTimeout(() => overlay.remove(), 400);
+        }, 500);
+      });
+      
+      // Изменение фото
+      document.getElementById('changePhotoBtn').addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          try {
+            const ref = ref(storage, `profiles/${currentUser.uid}`);
+            await uploadBytes(ref, file);
+            const url = await getDownloadURL(ref);
+            await updateDoc(doc(db, 'users', currentUser.uid), { photo: url });
+            currentUserData.photo = url;
+            document.getElementById('profilePhotoPreview').src = url;
+          } catch(err) {
+            alert('Ошибка загрузки');
+          }
+        };
+        input.click();
+      });
+      
+      // Изменение имени
+      document.getElementById('changeNameBtn').addEventListener('click', () => {
+        const newName = prompt('Новое имя:', currentUserData?.name || '');
+        if (newName && newName.trim()) {
+          updateDoc(doc(db, 'users', currentUser.uid), { name: newName.trim() });
+          currentUserData.name = newName.trim();
+          showSettingsScreen();
+        }
+      });
+    }
+
+    // ============================================================
+    // 3.9 - СОЗДАНИЕ ГРУППЫ
+    // ============================================================
+    function showCreateGroupModal() {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal-content">
+          <h3 style="margin-bottom:12px;">Создать группу</h3>
+          <input id="groupName" class="input-field" placeholder="Название группы" />
+          <button id="createGroupFinal" class="btn-primary" style="margin-top:8px;">🔒 Личная группа</button>
+          <button class="btn-secondary" style="margin-top:8px;" id="closeGroupModal">Отмена</button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      
+      document.getElementById('closeGroupModal').addEventListener('click', () => overlay.remove());
+      
+      document.getElementById('createGroupFinal').addEventListener('click', async () => {
+        const name = document.getElementById('groupName').value.trim();
+        if (!name) return alert('Введите название');
+        try {
+          const groupRef = doc(collection(db, 'groups'));
+          await setDoc(groupRef, {
+            name,
+            photo: '',
+            owner: currentUser.uid,
+            members: [currentUser.uid],
+            createdAt: serverTimestamp()
+          });
+          overlay.remove();
+          alert('Группа создана!');
+          showMainScreen();
+        } catch(e) {
+          alert('Ошибка: ' + e.message);
+        }
+      });
+    }
+
+    // ============================================================
+    // 3.10 - ОБРАБОТЧИК СОСТОЯНИЯ АВТОРИЗАЦИИ
+    // ============================================================
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        const docSnap = await getDoc(doc(db, 'users', user.uid));
+        if (docSnap.exists()) {
+          currentUserData = docSnap.data();
+          showMainScreen();
+        } else {
+          showProfileSetup();
+        }
+      } else {
+        if (isSignInWithEmailLink(auth, window.location.href)) {
+          let email = localStorage.getItem('emailForSignIn');
+          if (!email) email = prompt('Введите email для входа');
+          try {
+            await signInWithEmailLink(auth, email, window.location.href);
+            localStorage.removeItem('emailForSignIn');
+            window.location.href = window.location.href.split('?')[0];
+          } catch(e) {
+            alert('Ошибка входа: ' + e.message);
+          }
+        } else {
+          showAuthScreen();
+        }
+      }
+    });
+
+    // ============================================================
+    // 3.11 - ИНИЦИАЛИЗАЦИЯ ТЕМЫ (ТЁМНАЯ ПО УМОЛЧАНИЮ)
+    // ============================================================
+    document.body.classList.remove('light');
+    theme = 'dark';
+  </script>
 </body>
 </html>
