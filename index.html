@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>J Messenger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>J Messenger - Тест межсоединений</title>
   
   <script type="importmap">
     {
@@ -17,90 +17,25 @@
   </script>
   
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui; }
     body {
-      background-color: #0f0f12;
+      background: #0f0f12;
       color: #e4e6eb;
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      margin: 0;
       padding: 16px;
     }
-
     #app {
       width: 100%;
       max-width: 480px;
       background: #1e1e24;
       border-radius: 36px;
       padding: 24px 20px 28px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
       min-height: 700px;
-      position: relative;
-      overflow: hidden;
-      backdrop-filter: blur(2px);
     }
-
-    body.light #app {
-      background: #ffffff;
-      color: #1e1e24;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.1);
-    }
-
-    body.light {
-      background: #f5f3f0;
-    }
-
-    body.light input,
-    body.light .search-box,
-    body.light .settings-card {
-      background: #f0eeeb;
-      color: #1e1e24;
-    }
-
-    body.light .btn-primary {
-      background: #e87a4b;
-      color: white;
-    }
-
-    body.light .btn-primary:hover {
-      background: #d96c3e;
-    }
-
-    body.light .header,
-    body.light .footer-nav {
-      background: transparent;
-    }
-
-    body.light .user-item,
-    body.light .group-item {
-      background: #f8f7f5;
-    }
-
-    body.light .modal-content {
-      background: #ffffff;
-      color: #1e1e24;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .flex-center {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
+    .flex-center { display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .input-field {
       width: 100%;
       padding: 14px 18px;
@@ -112,11 +47,7 @@
       outline: none;
       margin: 10px 0;
     }
-
-    .input-field:focus {
-      border-color: #e87a4b;
-    }
-
+    .input-field:focus { border-color: #e87a4b; }
     .btn-primary {
       background: #e87a4b;
       color: white;
@@ -128,14 +59,8 @@
       width: 100%;
       cursor: pointer;
       transition: 0.2s;
-      box-shadow: 0 6px 14px rgba(232, 122, 75, 0.3);
     }
-
-    .btn-primary:hover {
-      background: #d96c3e;
-      transform: scale(0.98);
-    }
-
+    .btn-primary:hover { background: #d96c3e; transform: scale(0.98); }
     .btn-secondary {
       background: transparent;
       border: 1px solid #4a4a55;
@@ -145,7 +70,6 @@
       font-size: 16px;
       cursor: pointer;
     }
-
     .avatar {
       width: 56px;
       height: 56px;
@@ -153,32 +77,19 @@
       object-fit: cover;
       background: #3a3a44;
     }
-
-    .avatar-large {
-      width: 100px;
-      height: 100px;
-      border-radius: 60px;
-      object-fit: cover;
-      background: #3a3a44;
-      margin-bottom: 12px;
-    }
-
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 4px 0 12px;
     }
-
     .header h1 {
       font-size: 24px;
       font-weight: 700;
-      letter-spacing: -0.5px;
       background: linear-gradient(135deg, #f0935e, #e87a4b);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-
     .round-btn {
       width: 48px;
       height: 48px;
@@ -187,14 +98,18 @@
       border: none;
       color: white;
       font-size: 28px;
-      font-weight: 300;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(232, 122, 75, 0.4);
     }
-
+    .round-btn-back {
+      width: 48px;
+      height: 48px;
+      border-radius: 40px;
+      background: #3a3a44;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
     .search-box {
       background: #2a2a32;
       border-radius: 40px;
@@ -204,7 +119,6 @@
       align-items: center;
       gap: 8px;
     }
-
     .search-box input {
       background: transparent;
       border: none;
@@ -213,7 +127,6 @@
       width: 100%;
       font-size: 16px;
     }
-
     .footer-nav {
       display: flex;
       justify-content: space-around;
@@ -221,7 +134,6 @@
       border-top: 1px solid #2e2e38;
       margin-top: 20px;
     }
-
     .nav-item {
       display: flex;
       flex-direction: column;
@@ -231,13 +143,8 @@
       cursor: pointer;
       gap: 4px;
     }
-
-    .nav-item.active {
-      color: #e87a4b;
-    }
-
-    .user-item,
-    .group-item {
+    .nav-item.active { color: #e87a4b; }
+    .user-item {
       background: #26262e;
       padding: 12px 16px;
       border-radius: 24px;
@@ -247,55 +154,77 @@
       gap: 14px;
       cursor: pointer;
     }
-
-    .status-badge {
-      display: inline-block;
-      font-size: 12px;
-      padding: 2px 12px;
-      border-radius: 40px;
-      background: #2e8b57;
-      color: white;
-      margin-left: 8px;
+    .user-item:hover { background: #32323e; }
+    .empty-state { text-align: center; padding: 40px 0; color: #8e8e9a; }
+    .empty-state span { font-size: 48px; }
+    .chat-container { display: flex; flex-direction: column; height: 500px; }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(6px);
+    .message {
+      max-width: 80%;
+      padding: 10px 16px;
+      border-radius: 20px;
+      word-wrap: break-word;
+    }
+    .message.sent {
+      align-self: flex-end;
+      background: #e87a4b;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .message.received {
+      align-self: flex-start;
+      background: #2a2a32;
+      color: #e4e6eb;
+      border-bottom-left-radius: 4px;
+    }
+    .message .time { font-size: 10px; opacity: 0.7; margin-top: 4px; display: block; text-align: right; }
+    .chat-input-container {
+      display: flex;
+      gap: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #2e2e38;
+    }
+    .chat-input-container input {
+      flex: 1;
+      padding: 12px 18px;
+      border-radius: 60px;
+      border: 1px solid #3a3a44;
+      background: #2a2a32;
+      color: #f0f0f5;
+      font-size: 16px;
+      outline: none;
+    }
+    .chat-input-container button {
+      padding: 12px 24px;
+      border-radius: 60px;
+      border: none;
+      background: #e87a4b;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .chat-header {
       display: flex;
       align-items: center;
-      justify-content: center;
-      z-index: 999;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #2e2e38;
+      margin-bottom: 12px;
     }
-
-    .modal-content {
-      background: #1e1e24;
-      padding: 28px 24px;
-      border-radius: 48px;
-      max-width: 400px;
-      width: 90%;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    .chat-header h2 { font-size: 18px; }
+    .settings-card {
+      background: #26262e;
+      border-radius: 28px;
+      padding: 16px;
+      margin: 8px 0;
     }
-
-    .username-check {
-      font-size: 14px;
-      margin: 4px 0 12px;
-    }
-
-    .green {
-      color: #4cd964;
-    }
-
-    .red {
-      color: #ff6b6b;
-    }
-
     .theme-toggle {
       display: flex;
       align-items: center;
@@ -303,7 +232,6 @@
       padding: 12px 0;
       border-bottom: 1px solid #2e2e38;
     }
-
     .theme-switch {
       width: 52px;
       height: 28px;
@@ -313,7 +241,6 @@
       cursor: pointer;
       transition: 0.3s;
     }
-
     .theme-switch .thumb {
       width: 22px;
       height: 22px;
@@ -324,46 +251,15 @@
       left: 3px;
       transition: 0.3s;
     }
-
-    body.light .theme-switch {
-      background: #e0d6c8;
-    }
-
-    body.light .theme-switch .thumb {
-      left: 27px;
-      background: #f5b342;
-    }
-
-    .settings-card {
-      background: #26262e;
-      border-radius: 28px;
-      padding: 16px;
-      margin: 8px 0;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px 0;
-      color: #8e8e9a;
-    }
-
-    .empty-state span {
-      font-size: 48px;
-    }
-
     .theme-animation-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none;
       z-index: 9999;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-
     .theme-icon-anim {
       width: 120px;
       height: 120px;
@@ -374,55 +270,24 @@
       transform: scale(0.2);
       opacity: 0;
     }
-
     .theme-icon-anim.active {
       transform: scale(1.2);
       opacity: 0.9;
     }
-
-    body.light .theme-icon-anim {
-      background: #f5b342;
-      box-shadow: 0 0 100px #f5b342;
+    body.light #app {
+      background: #ffffff;
+      color: #1e1e24;
     }
-
-    .domain-error {
-      background: #2a1a1a;
-      border: 1px solid #ff6b6b;
-      border-radius: 16px;
-      padding: 20px;
-      margin: 10px 0;
+    body.light .input-field,
+    body.light .search-box,
+    body.light .settings-card {
+      background: #f0eeeb;
+      color: #1e1e24;
     }
-
-    .domain-error h3 {
-      color: #ff6b6b;
-      margin-bottom: 10px;
-    }
-
-    .domain-error code {
-      display: block;
-      background: #1a1a1a;
-      padding: 10px;
-      border-radius: 8px;
-      margin: 10px 0;
-      font-size: 14px;
-      color: #4cd964;
-      word-break: break-all;
-    }
-
-    .domain-error .steps {
-      color: #b0b0bc;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    @media (max-width: 480px) {
-      #app {
-        padding: 16px;
-        min-height: 90vh;
-        border-radius: 28px;
-      }
-    }
-
+    body.light .user-item { background: #f8f7f5; }
+    body.light .message.received { background: #e8e5e0; color: #1e1e24; }
+    body.light .theme-switch { background: #e0d6c8; }
+    body.light .theme-switch .thumb { left: 27px; background: #f5b342; }
     .loader-container {
       display: flex;
       flex-direction: column;
@@ -431,7 +296,6 @@
       min-height: 400px;
       gap: 20px;
     }
-
     .loader-spinner {
       width: 50px;
       height: 50px;
@@ -440,15 +304,40 @@
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
-    .loader-text {
-      color: #8e8e9a;
-      font-size: 16px;
+    .username-check { font-size: 14px; margin: 4px 0 12px; }
+    .green { color: #4cd964; }
+    .red { color: #ff6b6b; }
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: #1e1e24;
+      padding: 28px 24px;
+      border-radius: 48px;
+      max-width: 400px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    body.light .modal-content { background: #ffffff; color: #1e1e24; }
+    .avatar-large {
+      width: 100px;
+      height: 100px;
+      border-radius: 60px;
+      object-fit: cover;
+      background: #3a3a44;
+      margin-bottom: 12px;
     }
   </style>
 </head>
@@ -461,27 +350,17 @@
   </div>
   
   <script type="module">
-    // ============================================================
-    // ИНИЦИАЛИЗАЦИЯ FIREBASE
-    // ============================================================
     import { initializeApp } from "firebase/app";
     import { 
-      getAuth, 
-      sendSignInLinkToEmail, 
-      isSignInWithEmailLink, 
-      signInWithEmailLink,
-      onAuthStateChanged,
-      signOut
+      getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, 
+      signInWithEmailLink, onAuthStateChanged, signOut
     } from "firebase/auth";
     import { 
-      getFirestore, 
-      doc, getDoc, setDoc, updateDoc, 
+      getFirestore, doc, getDoc, setDoc, updateDoc, 
       collection, query, where, getDocs,
-      serverTimestamp
+      addDoc, onSnapshot, orderBy, serverTimestamp
     } from "firebase/firestore";
-    import { 
-      getStorage, ref, uploadBytes, getDownloadURL 
-    } from "firebase/storage";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBI7VB0zTARMTKEj1tVr_VwzfoQ6bJw0x0",
@@ -493,65 +372,19 @@
       measurementId: "G-YPYR4B4HCV"
     };
 
-    // Получаем текущий домен
-    const currentDomain = window.location.hostname;
-    const isLocalhost = currentDomain === 'localhost' || currentDomain === '127.0.0.1';
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
-    let app, auth, db, storage;
-    try {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-      storage = getStorage(app);
-      console.log('🔥 Firebase инициализирован');
-    } catch (error) {
-      console.error('❌ Ошибка Firebase:', error);
-      showErrorScreen(error.message);
-    }
-
-    // ============================================================
-    // ГЛОБАЛЬНОЕ СОСТОЯНИЕ
-    // ============================================================
     let currentUser = null;
     let currentUserData = null;
+    let currentChatUser = null;
+    let chatUnsubscribe = null;
     let theme = 'dark';
     const appEl = document.getElementById('app');
 
-    // ============================================================
-    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-    // ============================================================
-    function render(html) {
-      appEl.innerHTML = html;
-    }
-
-    function showErrorScreen(message) {
-      const domain = window.location.hostname;
-      render(`
-        <div class="flex-center" style="padding: 20px 0;">
-          <h1 style="font-size: 38px; font-weight: 800; background: linear-gradient(135deg,#f0935e,#e87a4b); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-            J Messenger
-          </h1>
-          <div class="domain-error">
-            <h3>⚠️ Требуется настройка Firebase</h3>
-            <div class="steps">
-              <p><strong>Ошибка:</strong> ${message}</p>
-              <br>
-              <p><strong>Решение:</strong></p>
-              <ol style="margin-left: 20px; margin-top: 10px;">
-                <li>Зайдите в <a href="https://console.firebase.google.com/" target="_blank" style="color: #e87a4b;">Firebase Console</a></li>
-                <li>Выберите проект <strong>jmessenger-519cf</strong></li>
-                <li>Нажмите <strong>Authentication → Settings</strong></li>
-                <li>Во вкладке <strong>Authorized domains</strong> нажмите <strong>Add domain</strong></li>
-                <li>Добавьте этот домен: <code>${domain}</code></li>
-                ${isLocalhost ? '<li>Также добавьте <code>localhost</code></li>' : ''}
-                <li>Нажмите <strong>Save</strong> и обновите страницу</li>
-              </ol>
-            </div>
-          </div>
-          <button onclick="location.reload()" class="btn-primary" style="margin-top: 20px;">🔄 Обновить страницу</button>
-        </div>
-      `);
-    }
+    function render(html) { appEl.innerHTML = html; }
 
     // ============================================================
     // ЭКРАН АВТОРИЗАЦИИ
@@ -581,7 +414,6 @@
           document.getElementById('authMessage').textContent = 'Введите email';
           return;
         }
-        
         try {
           const actionCodeSettings = { 
             url: window.location.href, 
@@ -591,18 +423,11 @@
           localStorage.setItem('emailForSignIn', email);
           showEmailSentScreen(email);
         } catch(e) {
-          if (e.code === 'auth/unauthorized-continue-uri') {
-            showErrorScreen('Домен не добавлен в разрешенные. Добавьте ' + window.location.hostname + ' в настройках Firebase.');
-          } else {
-            document.getElementById('authMessage').textContent = 'Ошибка: ' + e.message;
-          }
+          document.getElementById('authMessage').textContent = 'Ошибка: ' + e.message;
         }
       });
     }
 
-    // ============================================================
-    // ЭКРАН "ПИСЬМО ОТПРАВЛЕНО"
-    // ============================================================
     function showEmailSentScreen(email) {
       render(`
         <div class="flex-center" style="padding: 40px 0;">
@@ -620,7 +445,7 @@
     }
 
     // ============================================================
-    // ЭКРАН СОЗДАНИЯ ПРОФИЛЯ
+    // СОЗДАНИЕ ПРОФИЛЯ
     // ============================================================
     function showProfileSetup() {
       render(`
@@ -692,6 +517,12 @@
     // ГЛАВНЫЙ ЭКРАН
     // ============================================================
     function showMainScreen() {
+      if (chatUnsubscribe) {
+        chatUnsubscribe();
+        chatUnsubscribe = null;
+      }
+      currentChatUser = null;
+
       render(`
         <div>
           <div class="header">
@@ -731,7 +562,7 @@
             const data = doc.data();
             if (data.uid === currentUser.uid) return;
             html += `
-              <div class="user-item" data-uid="${data.uid}">
+              <div class="user-item" data-uid="${data.uid}" data-name="${data.name}" data-username="${data.username}">
                 <span class="avatar" style="background:#3a3a44;">${data.name?.[0]||'U'}</span>
                 <div>
                   <strong>${data.name}</strong> 
@@ -745,7 +576,10 @@
           
           document.querySelectorAll('.user-item').forEach(el => {
             el.addEventListener('click', () => {
-              alert('💬 Чат с пользователем (демо)');
+              const uid = el.dataset.uid;
+              const name = el.dataset.name;
+              const username = el.dataset.username;
+              openChat(uid, name, username);
             });
           });
         } catch(e) {
@@ -762,14 +596,102 @@
     }
 
     // ============================================================
-    // ЭКРАН НАСТРОЕК
+    // ЧАТ
+    // ============================================================
+    function openChat(otherUid, otherName, otherUsername) {
+      if (chatUnsubscribe) {
+        chatUnsubscribe();
+        chatUnsubscribe = null;
+      }
+      
+      currentChatUser = { uid: otherUid, name: otherName, username: otherUsername };
+      const chatId = [currentUser.uid, otherUid].sort().join('_');
+      
+      render(`
+        <div>
+          <div class="chat-header">
+            <button class="round-btn-back" id="backFromChat">←</button>
+            <div>
+              <h2>${otherName}</h2>
+              <span style="color:#4cd964;font-size:12px;">● @${otherUsername}</span>
+            </div>
+          </div>
+          <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+              <div style="text-align:center;color:#8e8e9a;padding:20px;">Загрузка сообщений...</div>
+            </div>
+            <div class="chat-input-container">
+              <input id="messageInput" placeholder="Сообщение..." />
+              <button id="sendMessageBtn">📤</button>
+            </div>
+          </div>
+        </div>
+      `);
+      
+      document.getElementById('backFromChat').addEventListener('click', showMainScreen);
+      
+      const messagesRef = collection(db, 'chats', chatId, 'messages');
+      const q = query(messagesRef, orderBy('createdAt'));
+      
+      chatUnsubscribe = onSnapshot(q, (snapshot) => {
+        const messagesDiv = document.getElementById('chatMessages');
+        let html = '';
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const isSent = data.senderId === currentUser.uid;
+          const time = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString() : '';
+          html += `
+            <div class="message ${isSent ? 'sent' : 'received'}">
+              ${data.text}
+              <span class="time">${time}</span>
+            </div>
+          `;
+        });
+        messagesDiv.innerHTML = html || '<div style="text-align:center;color:#8e8e9a;padding:20px;">Нет сообщений. Напишите первым! 💬</div>';
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
+      
+      document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+      document.getElementById('messageInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+      });
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text || !currentChatUser) return;
+      
+      const chatId = [currentUser.uid, currentChatUser.uid].sort().join('_');
+      
+      try {
+        await addDoc(collection(db, 'chats', chatId, 'messages'), {
+          text: text,
+          senderId: currentUser.uid,
+          senderName: currentUserData.name,
+          createdAt: serverTimestamp()
+        });
+        input.value = '';
+      } catch(e) {
+        alert('Ошибка отправки: ' + e.message);
+      }
+    }
+
+    // ============================================================
+    // НАСТРОЙКИ
     // ============================================================
     function showSettingsScreen() {
+      if (chatUnsubscribe) {
+        chatUnsubscribe();
+        chatUnsubscribe = null;
+      }
+      currentChatUser = null;
+
       render(`
         <div>
           <div class="header">
             <h1>Настройки</h1>
-            <button class="round-btn" id="backFromSettings" style="background:#3a3a44; font-size:20px;">←</button>
+            <button class="round-btn-back" id="backFromSettings">←</button>
           </div>
           <div class="settings-card" style="display:flex; gap:16px; align-items:center;">
             <img id="profilePhotoPreview" src="${currentUserData?.photo || ''}" class="avatar-large" style="width:64px;height:64px;border-radius:40px;" />
@@ -796,9 +718,14 @@
       
       document.getElementById('logoutBtn').addEventListener('click', async () => {
         if (confirm('Вы уверены?')) {
+          if (chatUnsubscribe) {
+            chatUnsubscribe();
+            chatUnsubscribe = null;
+          }
           await signOut(auth);
           currentUser = null;
           currentUserData = null;
+          currentChatUser = null;
           showAuthScreen();
         }
       });
@@ -857,7 +784,7 @@
     }
 
     // ============================================================
-    // СОЗДАНИЕ ГРУППЫ
+    // ГРУППЫ
     // ============================================================
     function showCreateGroupModal() {
       const overlay = document.createElement('div');
@@ -899,12 +826,11 @@
     }
 
     // ============================================================
-    // ОБРАБОТЧИК СОСТОЯНИЯ АВТОРИЗАЦИИ
+    // АВТОРИЗАЦИЯ
     // ============================================================
     onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {
-          console.log('✅ Пользователь:', user.email);
           currentUser = user;
           const docSnap = await getDoc(doc(db, 'users', user.uid));
           if (docSnap.exists()) {
@@ -939,14 +865,10 @@
       }
     });
 
-    // ============================================================
-    // ИНИЦИАЛИЗАЦИЯ
-    // ============================================================
     document.body.classList.remove('light');
     theme = 'dark';
     console.log('🚀 J Messenger запущен');
-    console.log('📍 Текущий домен:', window.location.hostname);
-    console.log('📌 Если ошибка, добавьте домен в Firebase Console');
+    console.log('📱 Общение работает между любыми пользователями, где бы они ни находились!');
   </script>
 </body>
 </html>
