@@ -38,12 +38,10 @@
       padding: 20px 16px 24px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
       min-height: 700px;
-      position: relative;
     }
     body.light #app {
       background: #fff;
       color: #1e1e24;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     }
     body.light {
       background: #f5f3f0;
@@ -463,6 +461,36 @@
       color: #8e8e9a;
       font-size: 16px;
     }
+    .auth-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      width: 100%;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-radius: 30px;
+      cursor: pointer;
+      background: #2a2a32;
+      color: #8e8e9a;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .auth-tab.active {
+      background: #e87a4b;
+      color: #fff;
+    }
+    body.light .auth-tab {
+      background: #e8e5e0;
+    }
+    body.light .auth-tab.active {
+      background: #e87a4b;
+      color: #fff;
+    }
     @media (max-width: 480px) {
       #app {
         padding: 16px;
@@ -484,6 +512,8 @@
       sendSignInLinkToEmail,
       isSignInWithEmailLink,
       signInWithEmailLink,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
       onAuthStateChanged,
       signOut
     } from 'firebase/auth';
@@ -549,35 +579,131 @@
       return `<div class="${cls}" style="background:${color};display:flex;align-items:center;justify-content:center;">${initials}</div>`;
     }
 
-    // ---- ЭКРАНЫ АВТОРИЗАЦИИ ----
+    // ============================================================
+    // ЭКРАН ВХОДА
+    // ============================================================
     function showAuthScreen() {
-      render(`
-        <div class="flex-center" style="padding:20px 0;">
-          <h1 style="font-size:38px;font-weight:800;background:linear-gradient(135deg,#f0935e,#e87a4b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">J Messenger</h1>
-          <p style="color:#a0a0b0;margin:6px 0 30px;">Соединяя людей мгновенно</p>
-          <p style="color:#b0b0bc;text-align:center;font-size:14px;max-width:280px;">Для входа или регистрации подтвердите свою электронную почту.</p>
-          <p style="color:#7a7a88;font-size:13px;margin-top:6px;">Если письмо не пришло, проверьте папку "Спам".</p>
-          <input id="emailInput" class="input-field" type="email" placeholder="Email" value="">
-          <button id="sendLinkBtn" class="btn-primary" style="margin-top:12px;">Продолжить</button>
-          <div id="authMessage" style="margin-top:16px;color:#ff6b6b;font-size:14px;"></div>
-        </div>
-      `);
-      document.getElementById('sendLinkBtn').addEventListener('click', async () => {
-        const email = document.getElementById('emailInput').value.trim();
-        if (!email) { document.getElementById('authMessage').textContent = 'Введите email'; return; }
-        try {
-          const actionCodeSettings = { url: window.location.href, handleCodeInApp: true };
-          await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-          localStorage.setItem('emailForSignIn', email);
-          showEmailSentScreen(email);
-        } catch (e) {
-          if (e.code === 'auth/quota-exceeded') {
-            document.getElementById('authMessage').textContent = '⚠️ Достигнут лимит отправки писем. Попробуйте через час.';
-          } else {
-            document.getElementById('authMessage').textContent = 'Ошибка: ' + e.message;
+      let currentTab = 'email';
+
+      function renderAuth() {
+        const isEmail = currentTab === 'email';
+        render(`
+          <div class="flex-center" style="padding:20px 0;">
+            <h1 style="font-size:38px;font-weight:800;background:linear-gradient(135deg,#f0935e,#e87a4b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">J Messenger</h1>
+            <p style="color:#a0a0b0;margin:6px 0 30px;">Соединяя людей мгновенно</p>
+
+            <div class="auth-tabs">
+              <button class="auth-tab ${isEmail ? 'active' : ''}" id="tabEmail">📧 По ссылке</button>
+              <button class="auth-tab ${!isEmail ? 'active' : ''}" id="tabPassword">🔑 По паролю</button>
+            </div>
+
+            ${isEmail ? `
+              <p style="color:#b0b0bc;text-align:center;font-size:14px;max-width:280px;">Введите email, чтобы получить ссылку для входа</p>
+              <p style="color:#7a7a88;font-size:13px;margin-top:6px;">Если письмо не пришло, проверьте папку "Спам"</p>
+              <input id="emailInput" class="input-field" type="email" placeholder="Email" value="">
+              <button id="sendLinkBtn" class="btn-primary" style="margin-top:12px;">Отправить ссылку</button>
+            ` : `
+              <p style="color:#b0b0bc;text-align:center;font-size:14px;max-width:280px;">Введите email и пароль для входа</p>
+              <input id="loginEmail" class="input-field" type="email" placeholder="Email" value="">
+              <input id="loginPassword" class="input-field" type="password" placeholder="Пароль" value="">
+              <button id="loginBtn" class="btn-primary" style="margin-top:12px;">Войти</button>
+              <button id="registerBtn" class="btn-secondary" style="margin-top:8px;">Создать аккаунт</button>
+            `}
+
+            <div id="authMessage" style="margin-top:16px;color:#ff6b6b;font-size:14px;text-align:center;"></div>
+          </div>
+        `);
+
+        // ---- Переключение вкладок ----
+        document.getElementById('tabEmail')?.addEventListener('click', () => {
+          currentTab = 'email';
+          renderAuth();
+        });
+        document.getElementById('tabPassword')?.addEventListener('click', () => {
+          currentTab = 'password';
+          renderAuth();
+        });
+
+        // ---- Вход по ссылке ----
+        document.getElementById('sendLinkBtn')?.addEventListener('click', async () => {
+          const email = document.getElementById('emailInput').value.trim();
+          const msg = document.getElementById('authMessage');
+          if (!email) { msg.textContent = 'Введите email'; return; }
+          try {
+            const actionCodeSettings = { url: window.location.href, handleCodeInApp: true };
+            await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+            localStorage.setItem('emailForSignIn', email);
+            showEmailSentScreen(email);
+          } catch (e) {
+            if (e.code === 'auth/quota-exceeded') {
+              msg.textContent = '⚠️ Лимит писем на сегодня. Используйте вход по паролю (вкладка "По паролю")';
+            } else {
+              msg.textContent = 'Ошибка: ' + e.message;
+            }
           }
-        }
-      });
+        });
+
+        // ---- Вход по паролю ----
+        document.getElementById('loginBtn')?.addEventListener('click', async () => {
+          const email = document.getElementById('loginEmail').value.trim();
+          const password = document.getElementById('loginPassword').value;
+          const msg = document.getElementById('authMessage');
+          if (!email || !password) { msg.textContent = 'Заполните все поля'; return; }
+          try {
+            await signInWithEmailAndPassword(auth, email, password);
+          } catch (e) {
+            if (e.code === 'auth/user-not-found') {
+              msg.textContent = '❌ Пользователь не найден. Нажмите "Создать аккаунт"';
+            } else if (e.code === 'auth/wrong-password') {
+              msg.textContent = '❌ Неверный пароль';
+            } else {
+              msg.textContent = 'Ошибка: ' + e.message;
+            }
+          }
+        });
+
+        // ---- РЕГИСТРАЦИЯ ПО ПАРОЛЮ (ИСПРАВЛЕНО) ----
+        document.getElementById('registerBtn')?.addEventListener('click', async () => {
+          const email = document.getElementById('loginEmail').value.trim();
+          const password = document.getElementById('loginPassword').value;
+          const msg = document.getElementById('authMessage');
+          if (!email || !password) { msg.textContent = 'Заполните все поля'; return; }
+          if (password.length < 6) { msg.textContent = 'Пароль должен быть минимум 6 символов'; return; }
+          try {
+            const userCred = await createUserWithEmailAndPassword(auth, email, password);
+            // Сохраняем пользователя в переменную
+            currentUser = userCred.user;
+            
+            // Создаём профиль в Firestore
+            const username = email.split('@')[0] + Math.floor(Math.random() * 1000);
+            await setDoc(doc(db, 'users', currentUser.uid), {
+              uid: currentUser.uid,
+              name: email.split('@')[0],
+              username: username,
+              photo: '',
+              createdAt: serverTimestamp()
+            });
+            
+            // Сохраняем данные пользователя
+            currentUserData = { 
+              name: email.split('@')[0], 
+              username: username, 
+              photo: '' 
+            };
+            
+            // Сразу показываем главный экран
+            showMainScreen();
+          } catch (e) {
+            if (e.code === 'auth/email-already-in-use') {
+              msg.textContent = '❌ Этот email уже используется. Нажмите "Войти"';
+            } else {
+              msg.textContent = 'Ошибка: ' + e.message;
+            }
+          }
+        });
+      }
+
+      renderAuth();
     }
 
     function showEmailSentScreen(email) {
@@ -587,11 +713,13 @@
           <h2 style="margin:20px 0 10px;">Письмо отправлено</h2>
           <p style="text-align:center;color:#b0b0bc;">Мы отправили ссылку на <strong>${email}</strong></p>
           <p style="text-align:center;color:#8e8e9a;margin-top:10px;">Откройте письмо и перейдите по ссылке.<br>После подтверждения вход произойдёт автоматически.</p>
+          <button class="btn-secondary" style="margin-top:20px;" id="backToAuth">← Назад</button>
         </div>
       `);
+      document.getElementById('backToAuth').addEventListener('click', showAuthScreen);
     }
 
-    // ---- СОЗДАНИЕ ПРОФИЛЯ ----
+    // ---- СОЗДАНИЕ ПРОФИЛЯ (для входа по ссылке) ----
     function showProfileSetup() {
       render(`
         <div class="flex-center" style="padding:8px 0;">
@@ -679,7 +807,7 @@
       });
     }
 
-    // ---- ЗАГРУЗКА СПИСКА ЧАТОВ С НЕПРОЧИТАННЫМИ ----
+    // ---- ЗАГРУЗКА СПИСКА ЧАТОВ ----
     function loadChatList() {
       const chatListEl = document.getElementById('chatList');
       if (!chatListEl) return;
@@ -701,8 +829,6 @@
             const userDoc = await getDoc(doc(db, 'users', otherUid));
             if (!userDoc.exists()) continue;
             const userData = userDoc.data();
-
-            // Получаем последнее сообщение
             const msgQuery = query(collection(db, 'chats', chatId, 'messages'), orderBy('createdAt', 'desc'), limit(1));
             const msgSnap = await getDocs(msgQuery);
             let lastMessage = 'Нет сообщений',
@@ -714,8 +840,6 @@
               lastMessageTime = msgData.createdAt;
               lastMessageSender = msgData.senderId;
             }
-
-            // Считаем непрочитанные сообщения (где senderId !== currentUser.uid)
             const unreadQuery = query(
               collection(db, 'chats', chatId, 'messages'),
               where('senderId', '!=', currentUser.uid),
@@ -723,37 +847,21 @@
             );
             const unreadSnap = await getDocs(unreadQuery);
             const unreadCount = unreadSnap.size;
-
-            chatData.push({
-              chatId,
-              otherUid,
-              userData,
-              lastMessage,
-              lastMessageTime,
-              lastMessageSender,
-              unreadCount
-            });
+            chatData.push({ chatId, otherUid, userData, lastMessage, lastMessageTime, lastMessageSender, unreadCount });
           } catch (e) { console.error(e); }
         }
-
         chatData.sort((a, b) => {
           if (!a.lastMessageTime) return 1;
           if (!b.lastMessageTime) return -1;
           return b.lastMessageTime.seconds - a.lastMessageTime.seconds;
         });
-
         let html = '';
         for (const chat of chatData) {
           const time = chat.lastMessageTime ? new Date(chat.lastMessageTime.seconds * 1000).toLocaleTimeString([], { hour: '2-digit',
             minute: '2-digit' }) : '';
           const isFromMe = chat.lastMessageSender === currentUser.uid;
           const preview = isFromMe ? `Вы: ${chat.lastMessage}` : chat.lastMessage;
-
-          // Бейджик с непрочитанными
-          const unreadBadge = chat.unreadCount > 0 ?
-            `<span class="unread-badge">${chat.unreadCount}</span>` :
-            '';
-
+          const unreadBadge = chat.unreadCount > 0 ? `<span class="unread-badge">${chat.unreadCount}</span>` : '';
           html += `
             <div class="chat-item" data-uid="${chat.otherUid}" data-name="${chat.userData.name}" data-username="${chat.userData.username}" data-chatid="${chat.chatId}">
               ${createAvatarHTML(chat.otherUid, chat.userData.name, chat.userData.photo, 'small')}
@@ -772,7 +880,6 @@
         chatListEl.innerHTML = html;
         document.querySelectorAll('.chat-item').forEach(el => {
           el.addEventListener('click', () => {
-            // Отмечаем сообщения как прочитанные
             const chatId = el.dataset.chatid;
             markMessagesAsRead(chatId);
             openChat(el.dataset.uid, el.dataset.name, el.dataset.username);
@@ -784,7 +891,6 @@
       });
     }
 
-    // ---- ОТМЕТКА ПРОЧИТАННЫХ ----
     async function markMessagesAsRead(chatId) {
       try {
         const messagesRef = collection(db, 'chats', chatId, 'messages');
@@ -795,12 +901,8 @@
           batch.push(updateDoc(doc.ref, { read: true }));
         });
         await Promise.all(batch);
-        if (batch.length > 0) {
-          console.log(`✅ Помечено как прочитанное: ${batch.length} сообщений`);
-        }
-      } catch (e) {
-        console.error('Ошибка отметки прочитанных:', e);
-      }
+        if (batch.length > 0) console.log(`✅ Помечено как прочитанное: ${batch.length} сообщений`);
+      } catch (e) { console.error('Ошибка отметки прочитанных:', e); }
     }
 
     // ---- ОТКРЫТЬ ЧАТ ----
@@ -809,9 +911,7 @@
         chatUnsubscribe = null; }
       currentChatUser = { uid: otherUid, name: otherName, username: otherUsername };
       const chatId = [currentUser.uid, otherUid].sort().join('_');
-
       setDoc(doc(db, 'chats', chatId), { members: [currentUser.uid, otherUid], createdAt: serverTimestamp() }, { merge: true });
-
       render(`
         <div>
           <div class="chat-header">
@@ -825,20 +925,17 @@
           </div>
         </div>
       `);
-
       getDoc(doc(db, 'users', otherUid)).then(userDoc => {
         if (userDoc.exists()) {
           const container = document.getElementById('chatAvatarContainer');
           if (container) container.innerHTML = createAvatarHTML(otherUid, otherName, userDoc.data().photo, 'small');
         }
       });
-
       document.getElementById('backFromChat').addEventListener('click', () => {
         if (chatUnsubscribe) { chatUnsubscribe();
           chatUnsubscribe = null; }
         showMainScreen();
       });
-
       const q = query(collection(db, 'chats', chatId, 'messages'), orderBy('createdAt'));
       chatUnsubscribe = onSnapshot(q, (snapshot) => {
         const div = document.getElementById('chatMessages');
@@ -853,11 +950,8 @@
         });
         div.innerHTML = html || '<div style="text-align:center;color:#8e8e9a;padding:20px;">Нет сообщений. Напишите первым! 💬</div>';
         div.scrollTop = div.scrollHeight;
-
-        // Автоматически отмечаем прочитанными при открытом чате
         markMessagesAsRead(chatId);
       });
-
       document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
       document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     }
@@ -872,7 +966,7 @@
           text,
           senderId: currentUser.uid,
           senderName: currentUserData.name,
-          read: false, // <-- новое поле
+          read: false,
           createdAt: serverTimestamp()
         });
         input.value = '';
@@ -919,7 +1013,6 @@
       document.getElementById('themeSwitch').addEventListener('click', () => {
         document.body.classList.toggle('light');
       });
-
       document.getElementById('changePhotoBtn').addEventListener('click', () => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -944,7 +1037,6 @@
         };
         input.click();
       });
-
       document.getElementById('changeNameBtn').addEventListener('click', () => {
         const newName = prompt('Новое имя:', currentUserData?.name || '');
         if (newName?.trim()) {
@@ -956,7 +1048,7 @@
       });
     }
 
-    // ---- СОЗДАНИЕ ГРУППЫ ----
+    // ---- ГРУППЫ ----
     function showCreateGroupModal() {
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
@@ -991,38 +1083,66 @@
       });
     }
 
-    // ---- АВТОРИЗАЦИЯ ----
+    // ============================================================
+    // АВТОРИЗАЦИЯ (ГЛАВНЫЙ ОБРАБОТЧИК)
+    // ============================================================
     onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {
+          console.log('✅ Пользователь авторизован:', user.email);
           currentUser = user;
+          
+          // Проверяем, есть ли профиль в Firestore
           const docSnap = await getDoc(doc(db, 'users', user.uid));
+          
           if (docSnap.exists()) {
+            // Профиль есть → загружаем данные и показываем главный экран
             currentUserData = docSnap.data();
+            console.log('👤 Профиль загружен:', currentUserData.name);
             showMainScreen();
           } else {
+            // Профиля нет → показываем создание профиля (для входа по ссылке)
+            console.log('📝 Профиль не найден, показываем создание');
             showProfileSetup();
           }
         } else {
+          // Пользователь не авторизован
+          console.log('🔍 Проверяем email-ссылку...');
+          
+          // Проверяем, не перешли ли по ссылке из письма
           if (isSignInWithEmailLink(auth, window.location.href)) {
             let email = localStorage.getItem('emailForSignIn');
-            if (!email) email = prompt('Введите email для входа');
+            if (!email) {
+              email = prompt('Введите email для входа');
+            }
             if (email) {
-              await signInWithEmailLink(auth, email, window.location.href);
-              localStorage.removeItem('emailForSignIn');
-              window.history.replaceState({}, document.title, window.location.pathname);
+              try {
+                await signInWithEmailLink(auth, email, window.location.href);
+                localStorage.removeItem('emailForSignIn');
+                // Очищаем URL от параметров
+                window.history.replaceState({}, document.title, window.location.pathname);
+                console.log('✅ Вход по ссылке успешен');
+              } catch (e) {
+                console.error('❌ Ошибка входа по ссылке:', e);
+                alert('Ошибка входа: ' + e.message);
+                showAuthScreen();
+              }
+            } else {
+              showAuthScreen();
             }
           } else {
+            // Обычный вход
             showAuthScreen();
           }
         }
-      } catch (e) {
-        console.error(e);
+      } catch (error) {
+        console.error('❌ Ошибка в onAuthStateChanged:', error);
         showAuthScreen();
       }
     });
 
     console.log('🚀 J Messenger запущен');
+    console.log('✅ Есть 2 способа входа: по ссылке и по паролю');
   </script>
 </body>
 </html>
