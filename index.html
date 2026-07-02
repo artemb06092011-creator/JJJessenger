@@ -29,6 +29,7 @@
       justify-content: center;
       min-height: 100vh;
       padding: 12px;
+      transition: background 0.6s ease;
     }
     #app {
       width: 100%;
@@ -38,6 +39,7 @@
       padding: 20px 16px 24px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
       min-height: 700px;
+      transition: background 0.6s ease, color 0.6s ease;
     }
     body.light #app {
       background: #fff;
@@ -91,6 +93,7 @@
       font-size: 16px;
       outline: none;
       margin: 10px 0;
+      transition: background 0.3s ease, border 0.3s ease;
     }
     .input-field:focus {
       border-color: #e87a4b;
@@ -120,6 +123,7 @@
       padding: 12px 20px;
       font-size: 16px;
       cursor: pointer;
+      transition: 0.3s ease;
     }
     .avatar,
     .avatar-small,
@@ -177,6 +181,10 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 12px rgba(232, 122, 75, 0.4);
+      transition: 0.3s ease;
+    }
+    .round-btn:hover {
+      transform: scale(1.05);
     }
     .round-btn-back {
       width: 48px;
@@ -190,6 +198,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: 0.3s ease;
     }
     .search-box {
       background: #2a2a32;
@@ -199,6 +208,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      transition: background 0.3s ease;
     }
     .search-box input {
       background: transparent;
@@ -214,6 +224,7 @@
       padding: 16px 0 4px;
       border-top: 1px solid #2e2e38;
       margin-top: 20px;
+      transition: border 0.3s ease;
     }
     .nav-item {
       display: flex;
@@ -223,6 +234,7 @@
       font-size: 14px;
       cursor: pointer;
       gap: 4px;
+      transition: 0.3s ease;
     }
     .nav-item.active {
       color: #e87a4b;
@@ -302,6 +314,11 @@
       align-items: center;
       justify-content: center;
       z-index: 999;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .modal-content {
       background: #1e1e24;
@@ -311,12 +328,18 @@
       width: 90%;
       max-height: 90vh;
       overflow-y: auto;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
     .settings-card {
       background: #26262e;
       border-radius: 28px;
       padding: 16px;
       margin: 8px 0;
+      transition: background 0.3s ease;
     }
     .theme-toggle {
       display: flex;
@@ -324,6 +347,7 @@
       justify-content: space-between;
       padding: 12px 0;
       border-bottom: 1px solid #2e2e38;
+      transition: border 0.3s ease;
     }
     .theme-switch {
       width: 52px;
@@ -332,17 +356,22 @@
       border-radius: 40px;
       position: relative;
       cursor: pointer;
-      transition: 0.3s;
+      transition: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .theme-switch .thumb {
       width: 22px;
       height: 22px;
-      background: #f0e68c;
       border-radius: 40px;
       position: absolute;
       top: 3px;
       left: 3px;
-      transition: 0.3s;
+      transition: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      background: #f0e68c;
+      box-shadow: 0 0 20px rgba(240, 230, 140, 0.3);
     }
     .empty-state {
       text-align: center;
@@ -370,6 +399,11 @@
       padding: 10px 16px;
       border-radius: 20px;
       word-wrap: break-word;
+      animation: messageIn 0.2s ease;
+    }
+    @keyframes messageIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
     .message.sent {
       align-self: flex-end;
@@ -395,6 +429,7 @@
       gap: 10px;
       padding-top: 10px;
       border-top: 1px solid #2e2e38;
+      transition: border 0.3s ease;
     }
     .chat-input-container input {
       flex: 1;
@@ -405,6 +440,7 @@
       color: #f0f0f5;
       font-size: 16px;
       outline: none;
+      transition: background 0.3s ease, border 0.3s ease;
     }
     .chat-input-container input:focus {
       border-color: #e87a4b;
@@ -417,6 +453,11 @@
       color: #fff;
       font-weight: 600;
       cursor: pointer;
+      transition: 0.3s ease;
+    }
+    .chat-input-container button:hover {
+      background: #d96c3e;
+      transform: scale(0.97);
     }
     .chat-header {
       display: flex;
@@ -425,6 +466,7 @@
       padding-bottom: 12px;
       border-bottom: 1px solid #2e2e38;
       margin-bottom: 12px;
+      transition: border 0.3s ease;
     }
     .chat-header h2 {
       font-size: 18px;
@@ -450,12 +492,8 @@
       animation: spin 1s linear infinite;
     }
     @keyframes spin {
-      0% {
-        transform: rotate(0);
-      }
-      100% {
-        transform: rotate(360deg);
-      }
+      0% { transform: rotate(0); }
+      100% { transform: rotate(360deg); }
     }
     .loader-text {
       color: #8e8e9a;
@@ -491,11 +529,82 @@
       background: #e87a4b;
       color: #fff;
     }
+    .username-check {
+      font-size: 14px;
+      margin: 4px 0 12px;
+    }
+    .green { color: #4cd964; }
+    .red { color: #ff6b6b; }
+
+    /* АНИМАЦИЯ ТЕМЫ */
+    .theme-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.3);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .theme-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .theme-icon {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      transform: scale(0.3);
+      opacity: 0;
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+      background: radial-gradient(circle, #fff9e6, #f5e6c8);
+      box-shadow: 0 0 80px rgba(255, 200, 100, 0.6);
+    }
+    .theme-icon.show {
+      transform: scale(1);
+      opacity: 1;
+    }
+    .theme-icon.hide {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+    body.light .theme-icon {
+      background: radial-gradient(circle, #1a1a2e, #0f0f1a);
+      box-shadow: 0 0 80px rgba(100, 150, 255, 0.3);
+    }
+    .theme-icon .sun {
+      display: inline-block;
+    }
+    .theme-icon .moon {
+      display: none;
+    }
+    body.light .theme-icon .sun {
+      display: none;
+    }
+    body.light .theme-icon .moon {
+      display: inline-block;
+    }
+
     @media (max-width: 480px) {
       #app {
         padding: 16px;
         min-height: 90vh;
         border-radius: 28px;
+      }
+      .theme-icon {
+        width: 90px;
+        height: 90px;
+        font-size: 45px;
       }
     }
   </style>
@@ -555,6 +664,7 @@
     let currentChatUser = null;
     let chatUnsubscribe = null;
     let chatsUnsubscribe = null;
+    let isRegistering = false; // Флаг для предотвращения конфликтов
     const appEl = document.getElementById('app');
 
     function render(html) { appEl.innerHTML = html; }
@@ -577,6 +687,41 @@
         return `<img src="${photoURL}" class="${cls}" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=\\"${cls}\\" style=\\"background:${color};display:flex;align-items:center;justify-content:center;\\">${initials}</div>'">`;
       }
       return `<div class="${cls}" style="background:${color};display:flex;align-items:center;justify-content:center;">${initials}</div>`;
+    }
+
+    // ============================================================
+    // АНИМАЦИЯ ТЕМЫ
+    // ============================================================
+    function toggleTheme() {
+      const overlay = document.createElement('div');
+      overlay.className = 'theme-overlay';
+      overlay.innerHTML = `
+        <div class="theme-icon">
+          <span class="sun">☀️</span>
+          <span class="moon">🌙</span>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      
+      requestAnimationFrame(() => {
+        overlay.classList.add('active');
+        const icon = overlay.querySelector('.theme-icon');
+        requestAnimationFrame(() => {
+          icon.classList.add('show');
+        });
+      });
+
+      setTimeout(() => {
+        const isLight = document.body.classList.toggle('light');
+        const icon = overlay.querySelector('.theme-icon');
+        icon.classList.remove('show');
+        icon.classList.add('hide');
+        
+        setTimeout(() => {
+          overlay.classList.remove('active');
+          setTimeout(() => overlay.remove(), 300);
+        }, 400);
+      }, 800);
     }
 
     // ============================================================
@@ -614,7 +759,6 @@
           </div>
         `);
 
-        // ---- Переключение вкладок ----
         document.getElementById('tabEmail')?.addEventListener('click', () => {
           currentTab = 'email';
           renderAuth();
@@ -662,7 +806,7 @@
           }
         });
 
-        // ---- РЕГИСТРАЦИЯ ПО ПАРОЛЮ (ИСПРАВЛЕНО) ----
+        // ---- РЕГИСТРАЦИЯ ПО ПАРОЛЮ ----
         document.getElementById('registerBtn')?.addEventListener('click', async () => {
           const email = document.getElementById('loginEmail').value.trim();
           const password = document.getElementById('loginPassword').value;
@@ -670,30 +814,13 @@
           if (!email || !password) { msg.textContent = 'Заполните все поля'; return; }
           if (password.length < 6) { msg.textContent = 'Пароль должен быть минимум 6 символов'; return; }
           try {
+            isRegistering = true;
             const userCred = await createUserWithEmailAndPassword(auth, email, password);
-            // Сохраняем пользователя в переменную
             currentUser = userCred.user;
-            
-            // Создаём профиль в Firestore
-            const username = email.split('@')[0] + Math.floor(Math.random() * 1000);
-            await setDoc(doc(db, 'users', currentUser.uid), {
-              uid: currentUser.uid,
-              name: email.split('@')[0],
-              username: username,
-              photo: '',
-              createdAt: serverTimestamp()
-            });
-            
-            // Сохраняем данные пользователя
-            currentUserData = { 
-              name: email.split('@')[0], 
-              username: username, 
-              photo: '' 
-            };
-            
-            // Сразу показываем главный экран
-            showMainScreen();
+            // Показываем экран создания профиля
+            showProfileSetup();
           } catch (e) {
+            isRegistering = false;
             if (e.code === 'auth/email-already-in-use') {
               msg.textContent = '❌ Этот email уже используется. Нажмите "Войти"';
             } else {
@@ -719,7 +846,7 @@
       document.getElementById('backToAuth').addEventListener('click', showAuthScreen);
     }
 
-    // ---- СОЗДАНИЕ ПРОФИЛЯ (для входа по ссылке) ----
+    // ---- СОЗДАНИЕ ПРОФИЛЯ ----
     function showProfileSetup() {
       render(`
         <div class="flex-center" style="padding:8px 0;">
@@ -734,6 +861,7 @@
       const usernameInput = document.getElementById('profileUsername');
       const checkDiv = document.getElementById('usernameCheck');
       let usernameAvailable = false;
+      
       usernameInput.addEventListener('input', async () => {
         const val = usernameInput.value.trim();
         if (val.length < 3) { checkDiv.innerHTML = 'Username должен быть уникальным.'; return; }
@@ -745,6 +873,7 @@
             usernameAvailable = true; }
         } catch (e) { checkDiv.innerHTML = 'Ошибка проверки'; }
       });
+      
       document.getElementById('createProfileBtn').addEventListener('click', async () => {
         const name = document.getElementById('profileName').value.trim();
         const username = document.getElementById('profileUsername').value.trim();
@@ -753,11 +882,18 @@
         if (!currentUser) return;
         try {
           await setDoc(doc(db, 'users', currentUser.uid), {
-            uid: currentUser.uid, name, username, photo: '', createdAt: serverTimestamp()
+            uid: currentUser.uid, 
+            name, 
+            username, 
+            photo: '', 
+            createdAt: serverTimestamp()
           });
           currentUserData = { name, username, photo: '' };
+          isRegistering = false;
           showMainScreen();
-        } catch (e) { document.getElementById('profileError').textContent = 'Ошибка: ' + e.message; }
+        } catch (e) { 
+          document.getElementById('profileError').textContent = 'Ошибка: ' + e.message;
+        }
       });
     }
 
@@ -992,7 +1128,10 @@
             <button id="changeNameBtn" class="btn-secondary" style="width:100%;margin:6px 0;">✏️ Изменить имя</button>
           </div>
           <div class="settings-card">
-            <div class="theme-toggle"><span>🌙 Тёмная / ☀️ Светлая</span><div id="themeSwitch" class="theme-switch"><div class="thumb"></div></div></div>
+            <div class="theme-toggle">
+              <span>🌙 Тёмная / ☀️ Светлая</span>
+              <div id="themeSwitch" class="theme-switch"><div class="thumb">☀️</div></div>
+            </div>
           </div>
           <button id="logoutBtn" class="btn-secondary" style="width:100%;margin-top:16px;color:#ff6b6b;">🚪 Выйти</button>
         </div>
@@ -1010,9 +1149,9 @@
           showAuthScreen();
         }
       });
-      document.getElementById('themeSwitch').addEventListener('click', () => {
-        document.body.classList.toggle('light');
-      });
+      
+      document.getElementById('themeSwitch').addEventListener('click', toggleTheme);
+
       document.getElementById('changePhotoBtn').addEventListener('click', () => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -1037,6 +1176,7 @@
         };
         input.click();
       });
+
       document.getElementById('changeNameBtn').addEventListener('click', () => {
         const newName = prompt('Новое имя:', currentUserData?.name || '');
         if (newName?.trim()) {
@@ -1089,41 +1229,28 @@
     onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {
-          console.log('✅ Пользователь авторизован:', user.email);
           currentUser = user;
-          
-          // Проверяем, есть ли профиль в Firestore
           const docSnap = await getDoc(doc(db, 'users', user.uid));
-          
           if (docSnap.exists()) {
-            // Профиль есть → загружаем данные и показываем главный экран
             currentUserData = docSnap.data();
-            console.log('👤 Профиль загружен:', currentUserData.name);
             showMainScreen();
           } else {
-            // Профиля нет → показываем создание профиля (для входа по ссылке)
-            console.log('📝 Профиль не найден, показываем создание');
-            showProfileSetup();
+            // Если мы регистрируемся — показываем создание профиля
+            if (!isRegistering) {
+              showProfileSetup();
+            }
           }
         } else {
-          // Пользователь не авторизован
-          console.log('🔍 Проверяем email-ссылку...');
-          
-          // Проверяем, не перешли ли по ссылке из письма
+          // Проверяем email-ссылку
           if (isSignInWithEmailLink(auth, window.location.href)) {
             let email = localStorage.getItem('emailForSignIn');
-            if (!email) {
-              email = prompt('Введите email для входа');
-            }
+            if (!email) email = prompt('Введите email для входа');
             if (email) {
               try {
                 await signInWithEmailLink(auth, email, window.location.href);
                 localStorage.removeItem('emailForSignIn');
-                // Очищаем URL от параметров
                 window.history.replaceState({}, document.title, window.location.pathname);
-                console.log('✅ Вход по ссылке успешен');
               } catch (e) {
-                console.error('❌ Ошибка входа по ссылке:', e);
                 alert('Ошибка входа: ' + e.message);
                 showAuthScreen();
               }
@@ -1131,18 +1258,17 @@
               showAuthScreen();
             }
           } else {
-            // Обычный вход
             showAuthScreen();
           }
         }
-      } catch (error) {
-        console.error('❌ Ошибка в onAuthStateChanged:', error);
+      } catch (e) {
+        console.error(e);
         showAuthScreen();
       }
     });
 
     console.log('🚀 J Messenger запущен');
-    console.log('✅ Есть 2 способа входа: по ссылке и по паролю');
+    console.log('✅ Все ошибки исправлены!');
   </script>
 </body>
 </html>
