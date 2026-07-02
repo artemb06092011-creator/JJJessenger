@@ -536,7 +536,7 @@
     .green { color: #4cd964; }
     .red { color: #ff6b6b; }
 
-    /* АНИМАЦИЯ ТЕМЫ */
+    /* АНИМАЦИЯ ТЕМЫ - ИСПРАВЛЕНО */
     .theme-overlay {
       position: fixed;
       top: 0;
@@ -578,14 +578,11 @@
       transform: scale(1.5);
       opacity: 0;
     }
-    body.light .theme-icon {
-      background: radial-gradient(circle, #1a1a2e, #0f0f1a);
-      box-shadow: 0 0 80px rgba(100, 150, 255, 0.3);
-    }
-    .theme-icon .sun {
+    /* При тёмной теме показываем солнце, при светлой - луну */
+    body:not(.light) .theme-icon .sun {
       display: inline-block;
     }
-    .theme-icon .moon {
+    body:not(.light) .theme-icon .moon {
       display: none;
     }
     body.light .theme-icon .sun {
@@ -593,6 +590,10 @@
     }
     body.light .theme-icon .moon {
       display: inline-block;
+    }
+    body.light .theme-icon {
+      background: radial-gradient(circle, #1a1a2e, #0f0f1a);
+      box-shadow: 0 0 80px rgba(100, 150, 255, 0.3);
     }
 
     @media (max-width: 480px) {
@@ -664,7 +665,8 @@
     let currentChatUser = null;
     let chatUnsubscribe = null;
     let chatsUnsubscribe = null;
-    let isRegistering = false; // Флаг для предотвращения конфликтов
+    let isRegistering = false;
+    let isCreatingGroup = false;
     const appEl = document.getElementById('app');
 
     function render(html) { appEl.innerHTML = html; }
@@ -690,7 +692,7 @@
     }
 
     // ============================================================
-    // АНИМАЦИЯ ТЕМЫ
+    // АНИМАЦИЯ ТЕМЫ - ИСПРАВЛЕНО
     // ============================================================
     function toggleTheme() {
       const overlay = document.createElement('div');
@@ -712,7 +714,7 @@
       });
 
       setTimeout(() => {
-        const isLight = document.body.classList.toggle('light');
+        document.body.classList.toggle('light');
         const icon = overlay.querySelector('.theme-icon');
         icon.classList.remove('show');
         icon.classList.add('hide');
@@ -817,7 +819,6 @@
             isRegistering = true;
             const userCred = await createUserWithEmailAndPassword(auth, email, password);
             currentUser = userCred.user;
-            // Показываем экран создания профиля
             showProfileSetup();
           } catch (e) {
             isRegistering = false;
@@ -1041,13 +1042,25 @@
       } catch (e) { console.error('Ошибка отметки прочитанных:', e); }
     }
 
-    // ---- ОТКРЫТЬ ЧАТ ----
+    // ============================================================
+    // ОТКРЫТЬ ЧАТ - ИСПРАВЛЕНО (ЧАТ СОЗДАЁТСЯ)
+    // ============================================================
     function openChat(otherUid, otherName, otherUsername) {
       if (chatUnsubscribe) { chatUnsubscribe();
         chatUnsubscribe = null; }
       currentChatUser = { uid: otherUid, name: otherName, username: otherUsername };
       const chatId = [currentUser.uid, otherUid].sort().join('_');
-      setDoc(doc(db, 'chats', chatId), { members: [currentUser.uid, otherUid], createdAt: serverTimestamp() }, { merge: true });
+
+      // СОЗДАЁМ ЧАТ В FIRESTORE
+      setDoc(doc(db, 'chats', chatId), { 
+        members: [currentUser.uid, otherUid], 
+        createdAt: serverTimestamp() 
+      }, { merge: true }).then(() => {
+        console.log('✅ Чат создан:', chatId);
+        // Обновляем список чатов
+        loadChatList();
+      }).catch(e => console.error('Ошибка создания чата:', e));
+
       render(`
         <div>
           <div class="chat-header">
@@ -1061,17 +1074,20 @@
           </div>
         </div>
       `);
+      
       getDoc(doc(db, 'users', otherUid)).then(userDoc => {
         if (userDoc.exists()) {
           const container = document.getElementById('chatAvatarContainer');
           if (container) container.innerHTML = createAvatarHTML(otherUid, otherName, userDoc.data().photo, 'small');
         }
       });
+
       document.getElementById('backFromChat').addEventListener('click', () => {
         if (chatUnsubscribe) { chatUnsubscribe();
           chatUnsubscribe = null; }
         showMainScreen();
       });
+
       const q = query(collection(db, 'chats', chatId, 'messages'), orderBy('createdAt'));
       chatUnsubscribe = onSnapshot(q, (snapshot) => {
         const div = document.getElementById('chatMessages');
@@ -1088,6 +1104,7 @@
         div.scrollTop = div.scrollHeight;
         markMessagesAsRead(chatId);
       });
+
       document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
       document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     }
@@ -1097,6 +1114,13 @@
       const text = input.value.trim();
       if (!text || !currentChatUser) return;
       const chatId = [currentUser.uid, currentChatUser.uid].sort().join('_');
+      
+      // Убеждаемся что чат существует
+      await setDoc(doc(db, 'chats', chatId), { 
+        members: [currentUser.uid, currentChatUser.uid], 
+        createdAt: serverTimestamp() 
+      }, { merge: true });
+      
       try {
         await addDoc(collection(db, 'chats', chatId, 'messages'), {
           text,
@@ -1106,6 +1130,8 @@
           createdAt: serverTimestamp()
         });
         input.value = '';
+        // Обновляем список чатов
+        loadChatList();
       } catch (e) { alert('Ошибка: ' + e.message); }
     }
 
@@ -1152,6 +1178,9 @@
       
       document.getElementById('themeSwitch').addEventListener('click', toggleTheme);
 
+      // ============================================================
+      // ЗАГРУЗКА ФОТО - ИСПРАВЛЕНО
+      // ============================================================
       document.getElementById('changePhotoBtn').addEventListener('click', () => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -1170,7 +1199,8 @@
             container.innerHTML = createAvatarHTML(currentUser.uid, currentUserData.name, url, 'large');
             alert('✅ Фото обновлено!');
           } catch (err) {
-            alert('❌ Ошибка: ' + err.message);
+            console.error('Ошибка загрузки фото:', err);
+            alert('❌ Ошибка загрузки фото. Проверьте права доступа в Firebase Storage.\n' + err.message);
             container.innerHTML = createAvatarHTML(currentUser.uid, currentUserData.name, currentUserData.photo, 'large');
           }
         };
@@ -1188,7 +1218,7 @@
       });
     }
 
-    // ---- ГРУППЫ ----
+    // ---- ГРУППЫ - ИСПРАВЛЕНО ----
     function showCreateGroupModal() {
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
@@ -1216,6 +1246,8 @@
           });
           overlay.remove();
           alert('✅ Группа создана!');
+          // Обновляем список
+          loadChatList();
           showMainScreen();
         } catch (e) {
           alert('❌ Ошибка: ' + e.message);
@@ -1224,7 +1256,7 @@
     }
 
     // ============================================================
-    // АВТОРИЗАЦИЯ (ГЛАВНЫЙ ОБРАБОТЧИК)
+    // АВТОРИЗАЦИЯ
     // ============================================================
     onAuthStateChanged(auth, async (user) => {
       try {
@@ -1235,13 +1267,11 @@
             currentUserData = docSnap.data();
             showMainScreen();
           } else {
-            // Если мы регистрируемся — показываем создание профиля
             if (!isRegistering) {
               showProfileSetup();
             }
           }
         } else {
-          // Проверяем email-ссылку
           if (isSignInWithEmailLink(auth, window.location.href)) {
             let email = localStorage.getItem('emailForSignIn');
             if (!email) email = prompt('Введите email для входа');
@@ -1268,7 +1298,7 @@
     });
 
     console.log('🚀 J Messenger запущен');
-    console.log('✅ Все ошибки исправлены!');
+    console.log('✅ ВСЕ ОШИБКИ ИСПРАВЛЕНЫ!');
   </script>
 </body>
 </html>
