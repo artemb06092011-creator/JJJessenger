@@ -593,18 +593,10 @@
       transform: scale(1.5);
       opacity: 0;
     }
-    body:not(.light) .theme-icon .sun {
-      display: inline-block;
-    }
-    body:not(.light) .theme-icon .moon {
-      display: none;
-    }
-    body.light .theme-icon .sun {
-      display: none;
-    }
-    body.light .theme-icon .moon {
-      display: inline-block;
-    }
+    body:not(.light) .theme-icon .sun { display: none; }
+    body:not(.light) .theme-icon .moon { display: inline-block; }
+    body.light .theme-icon .sun { display: inline-block; }
+    body.light .theme-icon .moon { display: none; }
     body.light .theme-icon {
       background: radial-gradient(circle, #1a1a2e, #0f0f1a);
       box-shadow: 0 0 80px rgba(100, 150, 255, 0.3);
@@ -623,296 +615,266 @@
     </div>
   </div>
     <script type="module">
-  import { initializeApp } from 'firebase/app';
-  import {
-    getAuth,
-    sendSignInLinkToEmail,
-    isSignInWithEmailLink,
-    signInWithEmailLink,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    onAuthStateChanged,
-    signOut
-  } from 'firebase/auth';
-  import {
-    getFirestore,
-    doc,
-    getDoc,
-    setDoc,
-    updateDoc,
-    collection,
-    query,
-    where,
-    getDocs,
-    addDoc,
-    onSnapshot,
-    orderBy,
-    serverTimestamp,
-    limit
-  } from 'firebase/firestore';
-  import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+    import { initializeApp } from 'firebase/app';
+    import {
+      getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink,
+      signInWithEmailAndPassword, createUserWithEmailAndPassword,
+      onAuthStateChanged, signOut
+    } from 'firebase/auth';
+    import {
+      getFirestore, doc, getDoc, setDoc, updateDoc,
+      collection, query, where, getDocs,
+      addDoc, onSnapshot, orderBy, serverTimestamp, increment
+    } from 'firebase/firestore';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-  const firebaseConfig = {
-    apiKey: 'AIzaSyBI7VB0zTARMTKEj1tVr_VwzfoQ6bJw0x0',
-    authDomain: 'jmessenger-519cf.firebaseapp.com',
-    projectId: 'jmessenger-519cf',
-    storageBucket: 'jmessenger-519cf.firebasestorage.app',
-    messagingSenderId: '339570238049',
-    appId: '1:339570238049:web:01d8a317f99314ddefc020',
-    measurementId: 'G-YPYR4B4HCV'
-  };
+    const firebaseConfig = {
+      apiKey: 'AIzaSyBI7VB0zTARMTKEj1tVr_VwzfoQ6bJw0x0',
+      authDomain: 'jmessenger-519cf.firebaseapp.com',
+      projectId: 'jmessenger-519cf',
+      storageBucket: 'jmessenger-519cf.firebasestorage.app',
+      messagingSenderId: '339570238049',
+      appId: '1:339570238049:web:01d8a317f99314ddefc020',
+      measurementId: 'G-YPYR4B4HCV'
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const storage = getStorage(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
-  let currentUser = null;
-  let currentUserData = null;
-  let currentChatUser = null;
-  let chatUnsubscribe = null;
-  let chatsUnsubscribe = null;
-  let isRegistering = false;
-  const appEl = document.getElementById('app');
+    let currentUser = null;
+    let currentUserData = null;
+    let currentChatUser = null;
+    let chatUnsubscribe = null;
+    let chatsUnsubscribe = null;
+    let isRegistering = false;
+    const appEl = document.getElementById('app');
 
-  function render(html) {
-    appEl.innerHTML = html;
-  }
+    function render(html) { appEl.innerHTML = html; }
 
-  // ---- АВАТАРКИ ----
-  function getInitials(name) {
-    return name ? name.charAt(0).toUpperCase() : '?';
-  }
+    // ========== АВАТАРКИ ==========
+    function getInitials(name) { return name ? name.charAt(0).toUpperCase() : '?'; }
 
-  function getAvatarColor(uid) {
-    const colors = ['#e87a4b', '#4ba3e8', '#4be8b0', '#e84b8a', '#e8d34b', '#8a4be8', '#4be8d3'];
-    let hash = 0;
-    for (let i = 0; i < uid.length; i++) hash = uid.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-  }
-
-  function createAvatarHTML(uid, name, photoURL, size = 'avatar') {
-    const sizeClass = size === 'small' ? 'avatar-small' : size === 'large' ? 'avatar-large' : 'avatar';
-    const initials = getInitials(name);
-    const color = getAvatarColor(uid);
-    if (photoURL && photoURL !== '' && photoURL !== 'null' && photoURL !== 'undefined') {
-      return `<img src="${photoURL}" class="${sizeClass}" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=\\"${sizeClass}\\" style=\\"background:${color};display:flex;align-items:center;justify-content:center;\\">${initials}</div>'">`;
+    function getAvatarColor(uid) {
+      const colors = ['#e87a4b', '#4ba3e8', '#4be8b0', '#e84b8a', '#e8d34b', '#8a4be8', '#4be8d3'];
+      let hash = 0;
+      for (let i = 0; i < uid.length; i++) hash = uid.charCodeAt(i) + ((hash << 5) - hash);
+      return colors[Math.abs(hash) % colors.length];
     }
-    return `<div class="${sizeClass}" style="background:${color};display:flex;align-items:center;justify-content:center;">${initials}</div>`;
-  }
 
-  // ============================================================
-  // ТЕМА
-  // ============================================================
-  function toggleTheme() {
-    const overlay = document.createElement('div');
-    overlay.className = 'theme-overlay';
-    overlay.innerHTML = `
-              <div class="theme-icon">
-                  <span class="sun">☀️</span>
-                  <span class="moon">🌙</span>
-              </div>
-          `;
-    document.body.appendChild(overlay);
+    function createAvatarHTML(uid, name, photoURL, size = 'avatar') {
+      const sizeClass = size === 'small' ? 'avatar-small' : size === 'large' ? 'avatar-large' : 'avatar';
+      const initials = getInitials(name);
+      const color = getAvatarColor(uid);
+      if (photoURL && photoURL !== '' && photoURL !== 'null' && photoURL !== 'undefined') {
+        return `<img src="${photoURL}" class="${sizeClass}" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=\\"${sizeClass}\\" style=\\"background:${color};display:flex;align-items:center;justify-content:center;\\">${initials}</div>'">`;
+      }
+      return `<div class="${sizeClass}" style="background:${color};display:flex;align-items:center;justify-content:center;">${initials}</div>`;
+    }
 
-    requestAnimationFrame(() => {
-      overlay.classList.add('active');
-      const icon = overlay.querySelector('.theme-icon');
+    // ========== ТЕМА (СОХРАНЕНИЕ В localStorage) ==========
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      
+      const overlay = document.createElement('div');
+      overlay.className = 'theme-overlay';
+      overlay.innerHTML = `
+        <div class="theme-icon">
+          <span class="sun">☀️</span>
+          <span class="moon">🌙</span>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
       requestAnimationFrame(() => {
-        icon.classList.add('show');
+        overlay.classList.add('active');
+        const icon = overlay.querySelector('.theme-icon');
+        requestAnimationFrame(() => icon.classList.add('show'));
       });
-    });
-
-    setTimeout(() => {
-      document.body.classList.toggle('light');
-      const icon = overlay.querySelector('.theme-icon');
-      icon.classList.remove('show');
-      icon.classList.add('hide');
 
       setTimeout(() => {
-        overlay.classList.remove('active');
-        setTimeout(() => overlay.remove(), 300);
-      }, 400);
-    }, 800);
-  }
+        const icon = overlay.querySelector('.theme-icon');
+        icon.classList.remove('show');
+        icon.classList.add('hide');
+        setTimeout(() => {
+          overlay.classList.remove('active');
+          setTimeout(() => overlay.remove(), 300);
+        }, 400);
+      }, 800);
+    }
 
-  // ============================================================
-  // ЭКРАН ВХОДА
-  // ============================================================
-  function showAuthScreen() {
-    let currentTab = 'email';
+    function initTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light') {
+        document.body.classList.add('light');
+      } else {
+        document.body.classList.remove('light');
+      }
+    }
 
-    function renderAuth() {
-      const isEmail = currentTab === 'email';
+    // ========== ЭКРАН ВХОДА ==========
+    function showAuthScreen() {
+      let currentTab = 'email';
+
+      function renderAuth() {
+        const isEmail = currentTab === 'email';
+        render(`
+          <div class="flex-center" style="padding:20px 0;">
+            <h1 style="font-size:38px;font-weight:800;background:linear-gradient(135deg,#f0935e,#e87a4b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">J Messenger</h1>
+            <p style="color:#a0a0b0;margin:6px 0 30px;">Соединяя людей мгновенно</p>
+            <div class="auth-tabs">
+              <button class="auth-tab ${isEmail ? 'active' : ''}" id="tabEmail">📧 По ссылке</button>
+              <button class="auth-tab ${!isEmail ? 'active' : ''}" id="tabPassword">🔑 По паролю</button>
+            </div>
+            ${isEmail ? `
+              <p style="color:#b0b0bc;text-align:center;font-size:14px;max-width:280px;">Введите email, чтобы получить ссылку для входа</p>
+              <p style="color:#7a7a88;font-size:13px;margin-top:6px;">Если письмо не пришло, проверьте папку "Спам"</p>
+              <input id="emailInput" class="input-field" type="email" placeholder="Email" value="">
+              <button id="sendLinkBtn" class="btn-primary" style="margin-top:12px;">Отправить ссылку</button>
+            ` : `
+              <p style="color:#b0b0bc;text-align:center;font-size:14px;max-width:280px;">Введите email и пароль для входа</p>
+              <input id="loginEmail" class="input-field" type="email" placeholder="Email" value="">
+              <input id="loginPassword" class="input-field" type="password" placeholder="Пароль" value="">
+              <button id="loginBtn" class="btn-primary" style="margin-top:12px;">Войти</button>
+              <button id="registerBtn" class="btn-secondary" style="margin-top:8px;">Создать аккаунт</button>
+            `}
+            <div id="authMessage" style="margin-top:16px;color:#ff6b6b;font-size:14px;text-align:center;"></div>
+          </div>
+        `);
+
+        document.getElementById('tabEmail')?.addEventListener('click', () => { currentTab = 'email'; renderAuth(); });
+        document.getElementById('tabPassword')?.addEventListener('click', () => { currentTab = 'password'; renderAuth(); });
+
+        document.getElementById('sendLinkBtn')?.addEventListener('click', async () => {
+          const email = document.getElementById('emailInput').value.trim();
+          const msg = document.getElementById('authMessage');
+          if (!email) { msg.textContent = 'Введите email'; return; }
+          try {
+            await sendSignInLinkToEmail(auth, email, { url: window.location.href, handleCodeInApp: true });
+            localStorage.setItem('emailForSignIn', email);
+            showEmailSentScreen(email);
+          } catch (e) {
+            if (e.code === 'auth/quota-exceeded') {
+              msg.textContent = '⚠️ Лимит писем на сегодня. Используйте вход по паролю (вкладка "По паролю")';
+            } else {
+              msg.textContent = 'Ошибка: ' + e.message;
+            }
+          }
+        });
+
+        document.getElementById('loginBtn')?.addEventListener('click', async () => {
+          const email = document.getElementById('loginEmail').value.trim();
+          const password = document.getElementById('loginPassword').value;
+          const msg = document.getElementById('authMessage');
+          if (!email || !password) { msg.textContent = 'Заполните все поля'; return; }
+          try {
+            await signInWithEmailAndPassword(auth, email, password);
+          } catch (e) {
+            if (e.code === 'auth/user-not-found') {
+              msg.textContent = '❌ Пользователь не найден. Нажмите "Создать аккаунт"';
+            } else if (e.code === 'auth/wrong-password') {
+              msg.textContent = '❌ Неверный пароль';
+            } else {
+              msg.textContent = 'Ошибка: ' + e.message;
+            }
+          }
+        });
+
+        document.getElementById('registerBtn')?.addEventListener('click', async () => {
+          const email = document.getElementById('loginEmail').value.trim();
+          const password = document.getElementById('loginPassword').value;
+          const msg = document.getElementById('authMessage');
+          if (!email || !password) { msg.textContent = 'Заполните все поля'; return; }
+          if (password.length < 6) { msg.textContent = 'Пароль должен быть минимум 6 символов'; return; }
+          try {
+            isRegistering = true;
+            const userCred = await createUserWithEmailAndPassword(auth, email, password);
+            currentUser = userCred.user;
+            showProfileSetup();
+          } catch (e) {
+            isRegistering = false;
+            if (e.code === 'auth/email-already-in-use') {
+              msg.textContent = '❌ Этот email уже используется. Нажмите "Войти"';
+            } else {
+              msg.textContent = 'Ошибка: ' + e.message;
+            }
+          }
+        });
+      }
+      renderAuth();
+    }
+
+    function showEmailSentScreen(email) {
       render(`
-                  <div class="flex-center" style="padding:20px 0;">
-                      <h1 style="font-size:38px;font-weight:800;background:linear-gradient(135deg,#f0935e,#e87a4b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">J Messenger</h1>
-                      <p style="color:#a0a0b0;margin:6px 0 30px;">Соединяя людей мгновенно</p>
+        <div class="flex-center" style="padding:40px 0;">
+          <span style="font-size:72px;">📨</span>
+          <h2 style="margin:20px 0 10px;">Письмо отправлено</h2>
+          <p style="text-align:center;color:#b0b0bc;">Мы отправили ссылку на <strong>${email}</strong></p>
+          <p style="text-align:center;color:#8e8e9a;margin-top:10px;">Откройте письмо и перейдите по ссылке.<br>После подтверждения вход произойдёт автоматически.</p>
+          <button class="btn-secondary" style="margin-top:20px;" id="backToAuth">← Назад</button>
+        </div>
+      `);
+      document.getElementById('backToAuth').addEventListener('click', showAuthScreen);
+    }
 
-                      <div class="auth-tabs">
-                          <button class="auth-tab ${isEmail ? 'active' : ''}" id="tabEmail">📧 По ссылке</button>
-                          <button class="auth-tab ${!isEmail ? 'active' : ''}" id="tabPassword">🔑 По паролю</button>
-                      </div>
+    // ========== СОЗДАНИЕ ПРОФИЛЯ ==========
+    function showProfileSetup() {
+      render(`
+        <div class="flex-center" style="padding:8px 0;">
+          <h2 style="margin-bottom:16px;">Создание профиля</h2>
+          <input id="profileName" class="input-field" placeholder="Имя" value="">
+          <input id="profileUsername" class="input-field" placeholder="Username" value="">
+          <div id="usernameCheck" class="username-check">Username должен быть уникальным.</div>
+          <button id="createProfileBtn" class="btn-primary" style="margin-top:8px;">Создать профиль</button>
+          <div id="profileError" style="color:#ff6b6b;margin-top:12px;"></div>
+        </div>
+      `);
+      const usernameInput = document.getElementById('profileUsername');
+      const checkDiv = document.getElementById('usernameCheck');
+      let usernameAvailable = false;
 
-                      ${isEmail ? `
-                          <p style="color:#b0b0bc;text-align:center;font-size:14px;max-width:280px;">Введите email, чтобы получить ссылку для входа</p>
-                          <p style="color:#7a7a88;font-size:13px;margin-top:6px;">Если письмо не пришло, проверьте папку "Спам"</p>
-                          <input id="emailInput" class="input-field" type="email" placeholder="Email" value="">
-                          <button id="sendLinkBtn" class="btn-primary" style="margin-top:12px;">Отправить ссылку</button>
-                      ` : `
-                          <p style="color:#b0b0bc;text-align:center;font-size:14px;max-width:280px;">Введите email и пароль для входа</p>
-                          <input id="loginEmail" class="input-field" type="email" placeholder="Email" value="">
-                          <input id="loginPassword" class="input-field" type="password" placeholder="Пароль" value="">
-                          <button id="loginBtn" class="btn-primary" style="margin-top:12px;">Войти</button>
-                          <button id="registerBtn" class="btn-secondary" style="margin-top:8px;">Создать аккаунт</button>
-                      `}
-
-                      <div id="authMessage" style="margin-top:16px;color:#ff6b6b;font-size:14px;text-align:center;"></div>
-                  </div>
-              `);
-
-      document.getElementById('tabEmail')?.addEventListener('click', () => {
-        currentTab = 'email';
-        renderAuth();
-      });
-      document.getElementById('tabPassword')?.addEventListener('click', () => {
-        currentTab = 'password';
-        renderAuth();
-      });
-
-      document.getElementById('sendLinkBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('emailInput').value.trim();
-        const msg = document.getElementById('authMessage');
-        if (!email) { msg.textContent = 'Введите email'; return; }
+      usernameInput.addEventListener('input', async () => {
+        const val = usernameInput.value.trim();
+        if (val.length < 3) { checkDiv.innerHTML = 'Username должен быть уникальным.'; return; }
         try {
-          const actionCodeSettings = { url: window.location.href, handleCodeInApp: true };
-          await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-          localStorage.setItem('emailForSignIn', email);
-          showEmailSentScreen(email);
-        } catch (e) {
-          if (e.code === 'auth/quota-exceeded') {
-            msg.textContent = '⚠️ Лимит писем на сегодня. Используйте вход по паролю (вкладка "По паролю")';
+          const q = query(collection(db, 'users'), where('username', '==', val));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            checkDiv.innerHTML = '🔴 Username уже занят';
+            usernameAvailable = false;
           } else {
-            msg.textContent = 'Ошибка: ' + e.message;
+            checkDiv.innerHTML = '🟢 Username свободен';
+            usernameAvailable = true;
           }
-        }
+        } catch (e) { checkDiv.innerHTML = 'Ошибка проверки'; }
       });
 
-      document.getElementById('loginBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        const msg = document.getElementById('authMessage');
-        if (!email || !password) { msg.textContent = 'Заполните все поля'; return; }
+      document.getElementById('createProfileBtn').addEventListener('click', async () => {
+        const name = document.getElementById('profileName').value.trim();
+        const username = document.getElementById('profileUsername').value.trim();
+        if (!name || !username) { document.getElementById('profileError').textContent = 'Заполните все поля'; return; }
+        if (!usernameAvailable) { document.getElementById('profileError').textContent = 'Username занят или не проверен'; return; }
+        if (!currentUser) return;
         try {
-          await signInWithEmailAndPassword(auth, email, password);
-        } catch (e) {
-          if (e.code === 'auth/user-not-found') {
-            msg.textContent = '❌ Пользователь не найден. Нажмите "Создать аккаунт"';
-          } else if (e.code === 'auth/wrong-password') {
-            msg.textContent = '❌ Неверный пароль';
-          } else {
-            msg.textContent = 'Ошибка: ' + e.message;
-          }
-        }
-      });
-
-      document.getElementById('registerBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        const msg = document.getElementById('authMessage');
-        if (!email || !password) { msg.textContent = 'Заполните все поля'; return; }
-        if (password.length < 6) { msg.textContent = 'Пароль должен быть минимум 6 символов'; return; }
-        try {
-          isRegistering = true;
-          const userCred = await createUserWithEmailAndPassword(auth, email, password);
-          currentUser = userCred.user;
-          showProfileSetup();
-        } catch (e) {
+          await setDoc(doc(db, 'users', currentUser.uid), {
+            uid: currentUser.uid,
+            name,
+            username,
+            photo: '',
+            createdAt: serverTimestamp()
+          });
+          currentUserData = { name, username, photo: '' };
           isRegistering = false;
-          if (e.code === 'auth/email-already-in-use') {
-            msg.textContent = '❌ Этот email уже используется. Нажмите "Войти"';
-          } else {
-            msg.textContent = 'Ошибка: ' + e.message;
-          }
+          showMainScreen();
+        } catch (e) {
+          document.getElementById('profileError').textContent = 'Ошибка: ' + e.message;
         }
       });
     }
 
-    renderAuth();
-  }
-
-  function showEmailSentScreen(email) {
-    render(`
-              <div class="flex-center" style="padding:40px 0;">
-                  <span style="font-size:72px;">📨</span>
-                  <h2 style="margin:20px 0 10px;">Письмо отправлено</h2>
-                  <p style="text-align:center;color:#b0b0bc;">Мы отправили ссылку на <strong>${email}</strong></p>
-                  <p style="text-align:center;color:#8e8e9a;margin-top:10px;">Откройте письмо и перейдите по ссылке.<br>После подтверждения вход произойдёт автоматически.</p>
-                  <button class="btn-secondary" style="margin-top:20px;" id="backToAuth">← Назад</button>
-              </div>
-          `);
-    document.getElementById('backToAuth').addEventListener('click', showAuthScreen);
-  }
-
-  // ============================================================
-  // СОЗДАНИЕ ПРОФИЛЯ
-  // ============================================================
-  function showProfileSetup() {
-    render(`
-              <div class="flex-center" style="padding:8px 0;">
-                  <h2 style="margin-bottom:16px;">Создание профиля</h2>
-                  <input id="profileName" class="input-field" placeholder="Имя" value="">
-                  <input id="profileUsername" class="input-field" placeholder="Username" value="">
-                  <div id="usernameCheck" class="username-check">Username должен быть уникальным.</div>
-                  <button id="createProfileBtn" class="btn-primary" style="margin-top:8px;">Создать профиль</button>
-                  <div id="profileError" style="color:#ff6b6b;margin-top:12px;"></div>
-              </div>
-          `);
-    const usernameInput = document.getElementById('profileUsername');
-    const checkDiv = document.getElementById('usernameCheck');
-    let usernameAvailable = false;
-
-    usernameInput.addEventListener('input', async () => {
-      const val = usernameInput.value.trim();
-      if (val.length < 3) { checkDiv.innerHTML = 'Username должен быть уникальным.'; return; }
-      try {
-        const q = query(collection(db, 'users'), where('username', '==', val));
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-          checkDiv.innerHTML = '🔴 Username уже занят';
-          usernameAvailable = false;
-        } else {
-          checkDiv.innerHTML = '🟢 Username свободен';
-          usernameAvailable = true;
-        }
-      } catch (e) { checkDiv.innerHTML = 'Ошибка проверки'; }
-    });
-
-    document.getElementById('createProfileBtn').addEventListener('click', async () => {
-      const name = document.getElementById('profileName').value.trim();
-      const username = document.getElementById('profileUsername').value.trim();
-      if (!name || !username) { document.getElementById('profileError').textContent = 'Заполните все поля'; return; }
-      if (!usernameAvailable) { document.getElementById('profileError').textContent = 'Username занят или не проверен'; return; }
-      if (!currentUser) return;
-      try {
-        await setDoc(doc(db, 'users', currentUser.uid), {
-          uid: currentUser.uid,
-          name,
-          username,
-          photo: '',
-          createdAt: serverTimestamp()
-        });
-        currentUserData = { name, username, photo: '' };
-        isRegistering = false;
-        showMainScreen();
-      } catch (e) {
-        document.getElementById('profileError').textContent = 'Ошибка: ' + e.message;
-      }
-    });
-  }
-            // ============================================================
-    // ГЛАВНЫЙ ЭКРАН
-    // ============================================================
+    // ========== ГЛАВНЫЙ ЭКРАН ==========
     function showMainScreen() {
       if (chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe = null; }
       if (chatsUnsubscribe) { chatsUnsubscribe(); chatsUnsubscribe = null; }
@@ -926,7 +888,7 @@
         </div>
       `);
       loadChatList();
-      
+
       document.getElementById('globalSearch').addEventListener('input', async (e) => {
         const q = e.target.value.trim();
         if (q.length < 2) { loadChatList(); return; }
@@ -937,7 +899,7 @@
             const data = d.data();
             if (data.uid === currentUser.uid) return;
             html += `
-              <div class="user-item" data-uid="${data.uid}" data-name="${data.name}" data-username="${data.username}">
+              <div class="user-item" data-uid="${data.uid}" data-name="${data.name}" data-username="${data.username}" data-photo="${data.photo || ''}">
                 ${createAvatarHTML(data.uid, data.name, data.photo)}
                 <div><strong>${data.name}</strong> <span style="color:#8e8e9a;">@${data.username}</span></div>
               </div>
@@ -946,12 +908,12 @@
           document.getElementById('chatList').innerHTML = html || '<div class="empty-state">Никого не найдено</div>';
           document.querySelectorAll('.user-item').forEach(el => {
             el.addEventListener('click', () => {
-              openChat(el.dataset.uid, el.dataset.name, el.dataset.username);
+              openChat(el.dataset.uid, el.dataset.name, el.dataset.username, el.dataset.photo);
             });
           });
         } catch (e) { console.error(e); }
       });
-      
+
       document.getElementById('navSettings').addEventListener('click', showSettingsScreen);
       document.getElementById('addGroupBtn').addEventListener('click', showCreateGroupModal);
       document.getElementById('navChats').addEventListener('click', () => {
@@ -960,17 +922,12 @@
       });
     }
 
-    // ============================================================
-    // ЗАГРУЗКА СПИСКА ЧАТОВ — ИСПРАВЛЕНО
-    // ============================================================
+    // ========== ЗАГРУЗКА СПИСКА ЧАТОВ (ОПТИМИЗИРОВАНА) ==========
     function loadChatList() {
       const chatListEl = document.getElementById('chatList');
       if (!chatListEl) return;
 
-      if (chatsUnsubscribe) {
-        chatsUnsubscribe();
-        chatsUnsubscribe = null;
-      }
+      if (chatsUnsubscribe) { chatsUnsubscribe(); chatsUnsubscribe = null; }
 
       const q = query(collection(db, 'chats'), where('members', 'array-contains', currentUser.uid));
 
@@ -992,25 +949,15 @@
             if (!userDoc.exists()) continue;
             const userData = userDoc.data();
 
-            const msgQuery = query(collection(db, 'chats', chatId, 'messages'), orderBy('createdAt', 'desc'), limit(1));
-            const msgSnap = await getDocs(msgQuery);
-            let lastMessage = 'Нет сообщений', lastMessageTime = null, lastMessageSender = null;
-            if (!msgSnap.empty) {
-              const msgData = msgSnap.docs[0].data();
-              lastMessage = msgData.text || 'Сообщение';
-              lastMessageTime = msgData.createdAt;
-              lastMessageSender = msgData.senderId;
-            }
+            // БЕРЁМ ДАННЫЕ ИЗ ДОКУМЕНТА ЧАТА (ОПТИМИЗАЦИЯ)
+            const lastMessage = data.lastMessage || 'Нет сообщений';
+            const lastMessageTime = data.lastMessageTime || null;
+            const lastSender = data.lastSender || null;
 
-            const unreadQuery = query(
-              collection(db, 'chats', chatId, 'messages'),
-              where('senderId', '!=', currentUser.uid),
-              where('read', '==', false)
-            );
-            const unreadSnap = await getDocs(unreadQuery);
-            const unreadCount = unreadSnap.size;
+            // СЧЁТЧИК НЕПРОЧИТАННЫХ (хранится в документе чата)
+            const unreadCount = data.unreadCounts?.[currentUser.uid] || 0;
 
-            chatData.push({ chatId, otherUid, userData, lastMessage, lastMessageTime, lastMessageSender, unreadCount });
+            chatData.push({ chatId, otherUid, userData, lastMessage, lastMessageTime, lastSender, unreadCount });
           } catch (e) { console.error(e); }
         }
 
@@ -1023,12 +970,12 @@
         let html = '';
         for (const chat of chatData) {
           const time = chat.lastMessageTime ? new Date(chat.lastMessageTime.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-          const isFromMe = chat.lastMessageSender === currentUser.uid;
+          const isFromMe = chat.lastSender === currentUser.uid;
           const preview = isFromMe ? `Вы: ${chat.lastMessage}` : chat.lastMessage;
           const unreadBadge = chat.unreadCount > 0 ? `<span class="unread-badge">${chat.unreadCount}</span>` : '';
 
           html += `
-            <div class="chat-item" data-uid="${chat.otherUid}" data-name="${chat.userData.name}" data-username="${chat.userData.username}" data-chatid="${chat.chatId}">
+            <div class="chat-item" data-uid="${chat.otherUid}" data-name="${chat.userData.name}" data-username="${chat.userData.username}" data-photo="${chat.userData.photo || ''}">
               ${createAvatarHTML(chat.otherUid, chat.userData.name, chat.userData.photo, 'small')}
               <div class="chat-info">
                 <div class="chat-name">
@@ -1046,9 +993,7 @@
 
         document.querySelectorAll('.chat-item').forEach(el => {
           el.addEventListener('click', () => {
-            const chatId = el.dataset.chatid;
-            markMessagesAsRead(chatId);
-            openChat(el.dataset.uid, el.dataset.name, el.dataset.username);
+            openChat(el.dataset.uid, el.dataset.name, el.dataset.username, el.dataset.photo);
           });
         });
       }, (error) => {
@@ -1057,41 +1002,17 @@
       });
     }
 
-    async function markMessagesAsRead(chatId) {
-      try {
-        const messagesRef = collection(db, 'chats', chatId, 'messages');
-        const q = query(messagesRef, where('senderId', '!=', currentUser.uid), where('read', '==', false));
-        const snap = await getDocs(q);
-        const batch = [];
-        snap.forEach(doc => {
-          batch.push(updateDoc(doc.ref, { read: true }));
-        });
-        await Promise.all(batch);
-        if (batch.length > 0) console.log(`✅ Помечено как прочитанное: ${batch.length} сообщений`);
-      } catch (e) { console.error('Ошибка отметки прочитанных:', e); }
-    }
-
-    // ============================================================
-    // ОТКРЫТЬ ЧАТ
-    // ============================================================
-    function openChat(otherUid, otherName, otherUsername) {
+    // ========== ОТКРЫТЬ ЧАТ ==========
+    function openChat(otherUid, otherName, otherUsername, otherPhoto) {
       if (chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe = null; }
-      currentChatUser = { uid: otherUid, name: otherName, username: otherUsername };
+      currentChatUser = { uid: otherUid, name: otherName, username: otherUsername, photo: otherPhoto };
       const chatId = [currentUser.uid, otherUid].sort().join('_');
-
-      setDoc(doc(db, 'chats', chatId), {
-        members: [currentUser.uid, otherUid],
-        createdAt: serverTimestamp()
-      }, { merge: true }).then(() => {
-        console.log('✅ Чат создан:', chatId);
-        loadChatList();
-      }).catch(e => console.error('Ошибка создания чата:', e));
 
       render(`
         <div>
           <div class="chat-header">
             <button class="round-btn-back" id="backFromChat">←</button>
-            <div id="chatAvatarContainer">${createAvatarHTML(otherUid, otherName, null, 'small')}</div>
+            <div id="chatAvatarContainer">${createAvatarHTML(otherUid, otherName, otherPhoto, 'small')}</div>
             <div><h2>${otherName}</h2><span class="status">● @${otherUsername}</span></div>
           </div>
           <div class="chat-container">
@@ -1100,13 +1021,6 @@
           </div>
         </div>
       `);
-
-      getDoc(doc(db, 'users', otherUid)).then(userDoc => {
-        if (userDoc.exists()) {
-          const container = document.getElementById('chatAvatarContainer');
-          if (container) container.innerHTML = createAvatarHTML(otherUid, otherName, userDoc.data().photo, 'small');
-        }
-      });
 
       document.getElementById('backFromChat').addEventListener('click', () => {
         if (chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe = null; }
@@ -1131,28 +1045,21 @@
         });
         div.innerHTML = html || '<div style="text-align:center;color:#8e8e9a;padding:20px;">Нет сообщений. Напишите первым! 💬</div>';
         div.scrollTop = div.scrollHeight;
-        markMessagesAsRead(chatId);
       });
 
       document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
       document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     }
 
-    // ============================================================
-    // ОТПРАВКА СООБЩЕНИЯ
-    // ============================================================
+    // ========== ОТПРАВКА СООБЩЕНИЯ ==========
     async function sendMessage() {
       const input = document.getElementById('messageInput');
       const text = input.value.trim();
       if (!text || !currentChatUser) return;
       const chatId = [currentUser.uid, currentChatUser.uid].sort().join('_');
 
-      await setDoc(doc(db, 'chats', chatId), {
-        members: [currentUser.uid, currentChatUser.uid],
-        createdAt: serverTimestamp()
-      }, { merge: true });
-
       try {
+        // 1. ОТПРАВЛЯЕМ СООБЩЕНИЕ
         await addDoc(collection(db, 'chats', chatId, 'messages'), {
           text,
           senderId: currentUser.uid,
@@ -1160,14 +1067,27 @@
           read: false,
           createdAt: serverTimestamp()
         });
+
+        // 2. ОБНОВЛЯЕМ ДОКУМЕНТ ЧАТА (lastMessage, lastMessageTime, lastSender, unreadCounts)
+        const chatRef = doc(db, 'chats', chatId);
+        const unreadCounts = {};
+        unreadCounts[currentChatUser.uid] = increment(1);
+
+        await setDoc(chatRef, {
+          members: [currentUser.uid, currentChatUser.uid],
+          lastMessage: text,
+          lastMessageTime: serverTimestamp(),
+          lastSender: currentUser.uid,
+          unreadCounts: unreadCounts,
+          createdAt: serverTimestamp()
+        }, { merge: true });
+
         input.value = '';
         loadChatList();
       } catch (e) { alert('Ошибка: ' + e.message); }
     }
 
-    // ============================================================
-    // НАСТРОЙКИ
-    // ============================================================
+    // ========== НАСТРОЙКИ ==========
     function showSettingsScreen() {
       if (chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe = null; }
       if (chatsUnsubscribe) { chatsUnsubscribe(); chatsUnsubscribe = null; }
@@ -1185,14 +1105,14 @@
           </div>
           <div class="settings-card">
             <div class="theme-toggle">
-              <span>🌙 Тёмная / ☀️ Светлая</span>
-              <div id="themeSwitch" class="theme-switch"><div class="thumb">☀️</div></div>
+              <span id="themeLabel">${document.body.classList.contains('light') ? '☀️ Светлая' : '🌙 Тёмная'}</span>
+              <div id="themeSwitch" class="theme-switch"><div class="thumb">${document.body.classList.contains('light') ? '☀️' : '🌙'}</div></div>
             </div>
           </div>
           <button id="logoutBtn" class="btn-secondary" style="width:100%;margin-top:16px;color:#ff6b6b;">🚪 Выйти</button>
         </div>
       `);
-      
+
       document.getElementById('backFromSettings').addEventListener('click', showMainScreen);
       
       document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -1206,7 +1126,13 @@
         }
       });
 
-      document.getElementById('themeSwitch').addEventListener('click', toggleTheme);
+      document.getElementById('themeSwitch').addEventListener('click', () => {
+        toggleTheme();
+        // Обновляем иконки в настройках
+        const isLight = document.body.classList.contains('light');
+        document.getElementById('themeLabel').textContent = isLight ? '☀️ Светлая' : '🌙 Тёмная';
+        document.querySelector('#themeSwitch .thumb').textContent = isLight ? '☀️' : '🌙';
+      });
 
       document.getElementById('changePhotoBtn').addEventListener('click', () => {
         const input = document.createElement('input');
@@ -1218,13 +1144,21 @@
           const container = document.getElementById('profilePhotoContainer');
           container.innerHTML = '<div class="avatar-large" style="background:#3a3a44;display:flex;align-items:center;justify-content:center;">⏳</div>';
           try {
+            // Загружаем в Storage
             const fileRef = ref(storage, `profiles/${currentUser.uid}`);
             await uploadBytes(fileRef, file);
             const url = await getDownloadURL(fileRef);
+            
+            // Обновляем в Firestore
             await updateDoc(doc(db, 'users', currentUser.uid), { photo: url });
             currentUserData.photo = url;
+            
+            // Обновляем UI
             container.innerHTML = createAvatarHTML(currentUser.uid, currentUserData.name, url, 'large');
             alert('✅ Фото обновлено!');
+            
+            // Перезагружаем список чатов (для обновления аватарок)
+            loadChatList();
           } catch (err) {
             console.error('Ошибка загрузки фото:', err);
             alert('❌ Ошибка загрузки фото. Проверьте права доступа в Firebase Storage.\n' + err.message);
@@ -1241,15 +1175,14 @@
             .then(() => {
               currentUserData.name = newName.trim();
               showSettingsScreen();
+              loadChatList(); // обновляем список чатов
             })
             .catch(err => alert('Ошибка: ' + err.message));
         }
       });
     }
 
-    // ============================================================
-    // СОЗДАНИЕ ГРУППЫ
-    // ============================================================
+    // ========== ГРУППЫ ==========
     function showCreateGroupModal() {
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
@@ -1279,7 +1212,8 @@
           });
           overlay.remove();
           alert('✅ Группа создана!');
-          loadChatList();
+          // Группы пока не отображаются в списке чатов (только личные чаты)
+          // TODO: добавить отображение групп
           showMainScreen();
         } catch (e) {
           alert('❌ Ошибка: ' + e.message);
@@ -1287,9 +1221,7 @@
       });
     }
 
-    // ============================================================
-    // АВТОРИЗАЦИЯ
-    // ============================================================
+    // ========== АВТОРИЗАЦИЯ ==========
     onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {
@@ -1322,6 +1254,8 @@
       }
     });
 
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    initTheme();
     console.log('🚀 J Messenger запущен. ВСЕ ОШИБКИ ИСПРАВЛЕНЫ!');
   </script>
 </body>
