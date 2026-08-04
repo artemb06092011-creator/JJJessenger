@@ -1435,7 +1435,35 @@
           sendMessage(); });
     }
 
-    // ========== ОТПРАВКА СООБЩЕНИЯ ==========
+    // ============================================================
+    // ОТПРАВКА СООБЩЕНИЯ + УВЕДОМЛЕНИЕ В TELEGRAM
+    // ============================================================
+    const BOT_TOKEN = '8755472651:AAE7dBrYJJbJeYUSmDvWc5-7o0RMvAJuS68';
+
+    async function sendTelegramNotification(chatUserUid, senderName, messageText) {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', chatUserUid));
+        if (!userDoc.exists()) return;
+        const userData = userDoc.data();
+
+        if (!userData.telegramChatId) return;
+
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: userData.telegramChatId,
+            text: `📩 *${senderName}* написал(а):\n\n${messageText}`,
+            parse_mode: 'Markdown',
+            disable_notification: false
+          })
+        });
+        console.log('✅ Уведомление отправлено в Telegram');
+      } catch (e) {
+        console.error('❌ Ошибка отправки в Telegram:', e);
+      }
+    }
+
     async function sendMessage() {
       const input = document.getElementById('messageInput');
       const text = input.value.trim();
@@ -1463,6 +1491,9 @@
           unreadCounts: unreadCounts,
           createdAt: serverTimestamp()
         }, { merge: true });
+
+        // === ОТПРАВЛЯЕМ УВЕДОМЛЕНИЕ В TELEGRAM ===
+        sendTelegramNotification(currentChatUser.uid, currentUserData.name, text);
 
         input.value = '';
         loadChatList();
@@ -1675,6 +1706,17 @@
     }
 
     // ============================================================
+    // РЕГИСТРАЦИЯ TELEGRAM CHAT_ID (команда /start)
+    // ============================================================
+    // Бот получает сообщение, мы сохраняем chat_id в Firestore
+    // Для этого нужно настроить webhook или использовать long polling
+    // Самый простой способ — пользователь сам пишет боту, а мы обрабатываем через webhook
+
+    // Для простоты: пользователь пишет /start боту,
+    // и мы сохраняем его chat_id в Firestore при следующем входе в приложение
+    // (или при первом входе, если он уже авторизован)
+
+    // ============================================================
     // УСТАНОВКА ПРИЛОЖЕНИЯ (PWA)
     // ============================================================
     let deferredPrompt = null;
@@ -1743,7 +1785,7 @@
     // ЗАПУСК
     // ============================================================
     initTheme();
-    console.log('🚀 J Messenger запущен. ВСЕ ОШИБКИ ИСПРАВЛЕНЫ!');
+    console.log('🚀 J Messenger запущен. Бот активен!');
   </script>
 </body>
-</html>
+  </html>
