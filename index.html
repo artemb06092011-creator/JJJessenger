@@ -28,7 +28,6 @@
   </script>
 
   <style>
-    /* ===== ВЕСЬ ТВОЙ CSS (БЕЗ ИЗМЕНЕНИЙ) ===== */
     * {
       margin: 0;
       padding: 0;
@@ -854,9 +853,7 @@
       onSnapshot,
       orderBy,
       serverTimestamp,
-      increment,
-      arrayUnion,
-      arrayRemove
+      increment
     } from 'firebase/firestore';
     import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
@@ -878,7 +875,6 @@
     let currentUser = null;
     let currentUserData = null;
     let currentChatUser = null;
-    let currentGroupId = null;
     let chatUnsubscribe = null;
     let chatsUnsubscribe = null;
     let isRegistering = false;
@@ -1113,10 +1109,9 @@
       if (chatsUnsubscribe) { chatsUnsubscribe();
         chatsUnsubscribe = null; }
       currentChatUser = null;
-      currentGroupId = null;
       render(`
             <div>
-              <div class="header"><h1>J Messenger</h1><button id="addGroupBtn" class="round-btn">+</button></div>
+              <div class="header"><h1>J Messenger</h1></div>
               <div class="search-box"><span>🔍</span><input id="globalSearch" placeholder="Поиск пользователей..." /></div>
               <div id="chatList"><div class="empty-state"><span>😔</span><p>Пока тут никого нет</p><p style="font-size:14px;">Найдите кого-то, чтобы начать общение 💬</p></div></div>
               <div class="footer-nav"><div class="nav-item active" id="navChats">💬 Чаты</div><div class="nav-item" id="navSettings">⚙️ Настройки</div></div>
@@ -1151,7 +1146,6 @@
       });
 
       document.getElementById('navSettings').addEventListener('click', showSettingsScreen);
-      document.getElementById('addGroupBtn').addEventListener('click', showCreateGroupModal);
       document.getElementById('navChats').addEventListener('click', () => {
         document.getElementById('globalSearch').value = '';
         loadChatList();
@@ -1159,7 +1153,7 @@
     }
 
     // ============================================================
-    // ЗАГРУЗКА СПИСКА ЧАТОВ + ГРУПП
+    // ЗАГРУЗКА СПИСКА ЧАТОВ
     // ============================================================
     function loadChatList() {
       const chatListEl = document.getElementById('chatList');
@@ -1168,16 +1162,17 @@
       if (chatsUnsubscribe) { chatsUnsubscribe();
         chatsUnsubscribe = null; }
 
-      const q1 = query(collection(db, 'chats'), where('members', 'array-contains', currentUser.uid));
-      const q2 = query(collection(db, 'groups'), where('members', 'array-contains', currentUser.uid));
+      const q = query(collection(db, 'chats'), where('members', 'array-contains', currentUser.uid));
 
-      chatsUnsubscribe = onSnapshot(q1, async (snapshot1) => {
-        const groupsSnap = await getDocs(q2);
+      chatsUnsubscribe = onSnapshot(q, async (snapshot) => {
+        if (snapshot.empty) {
+          chatListEl.innerHTML =
+            `<div class="empty-state"><span>😔</span><p>Пока тут никого нет</p><p style="font-size:14px;">Найдите кого-то, чтобы начать общение 💬</p></div>`;
+          return;
+        }
 
-        let allItems = [];
-
-        // === ЛИЧНЫЕ ЧАТЫ ===
-        for (const d of snapshot1.docs) {
+        const chatData = [];
+        for (const d of snapshot.docs) {
           const data = d.data();
           const chatId = d.id;
           const otherUid = data.members.find(m => m !== currentUser.uid);
@@ -1193,117 +1188,61 @@
             const lastSender = data.lastSender || null;
             const unreadCount = data.unreadCounts?.[currentUser.uid] || 0;
 
-            allItems.push({
-              id: chatId,
-              type: 'private',
-              otherUid,
-              userData,
-              lastMessage,
-              lastMessageTime,
-              lastSender,
-              unreadCount,
-              name: userData.name,
-              photo: userData.photo
-            });
+            chatData.push({ chatId, otherUid, userData, lastMessage, lastMessageTime, lastSender,
+              unreadCount });
           } catch (e) { console.error(e); }
         }
 
-        // === ГРУППЫ ===
-        groupsSnap.forEach(d => {
-          const data = d.data();
-          const groupId = d.id;
-          allItems.push({
-            id: groupId,
-            type: 'group',
-            name: data.name,
-            photo: data.photo,
-            members: data.members || [],
-            lastMessage: data.lastMessage || 'Группа создана',
-            lastMessageTime: data.lastMessageTime || null,
-            lastSender: data.lastSender || null,
-            unreadCount: data.unreadCounts?.[currentUser.uid] || 0
-          });
-        });
-
-        allItems.sort((a, b) => {
+        chatData.sort((a, b) => {
           if (!a.lastMessageTime) return 1;
           if (!b.lastMessageTime) return -1;
           return b.lastMessageTime.seconds - a.lastMessageTime.seconds;
         });
 
-        if (allItems.length === 0) {
-          chatListEl.innerHTML =
-            `<div class="empty-state"><span>😔</span><p>Пока тут никого нет</p><p style="font-size:14px;">Найдите кого-то, чтобы начать общение 💬</p></div>`;
-          return;
-        }
-
         let html = '';
-        for (const item of allItems) {
-          const time = item.lastMessageTime ? new Date(item.lastMessageTime.seconds * 1000).toLocaleTimeString(
+        for (const chat of chatData) {
+          const time = chat.lastMessageTime ? new Date(chat.lastMessageTime.seconds * 1000).toLocaleTimeString(
             [], { hour: '2-digit', minute: '2-digit' }) : '';
+          const isFromMe = chat.lastSender === currentUser.uid;
+          const preview = isFromMe ? `Вы: ${chat.lastMessage}` : chat.lastMessage;
+          const unreadBadge = chat.unreadCount > 0 ? `<span class="unread-badge">${chat.unreadCount}</span>` :
+            '';
 
-          const isFromMe = item.lastSender === currentUser.uid;
-          const preview = isFromMe ? `Вы: ${item.lastMessage}` : item.lastMessage;
-          const unreadBadge = item.unreadCount > 0 ? `<span class="unread-badge">${item.unreadCount}</span>` : '';
-
-          if (item.type === 'private') {
-            html += `
-                          <div class="chat-item" data-uid="${item.otherUid}" data-name="${item.userData.name}" data-username="${item.userData.username}" data-photo="${item.userData.photo || ''}" data-type="private">
-                            ${createAvatarHTML(item.otherUid, item.userData.name, item.userData.photo, 'small')}
-                            <div class="chat-info">
-                              <div class="chat-name">
-                                ${item.userData.name}
-                                <span class="online-dot"></span>
-                                ${unreadBadge}
-                              </div>
-                              <div class="chat-last-message">${preview}</div>
-                            </div>
-                            <div class="chat-time">${time}</div>
+          html += `
+                      <div class="chat-item" data-uid="${chat.otherUid}" data-name="${chat.userData.name}" data-username="${chat.userData.username}" data-photo="${chat.userData.photo || ''}">
+                        ${createAvatarHTML(chat.otherUid, chat.userData.name, chat.userData.photo, 'small')}
+                        <div class="chat-info">
+                          <div class="chat-name">
+                            ${chat.userData.name}
+                            <span class="online-dot"></span>
+                            ${unreadBadge}
                           </div>
-                        `;
-          } else {
-            html += `
-                          <div class="chat-item" data-gid="${item.id}" data-name="${item.name}" data-type="group">
-                            ${createAvatarHTML(item.id, item.name, item.photo, 'small')}
-                            <div class="chat-info">
-                              <div class="chat-name">
-                                👥 ${item.name}
-                                ${unreadBadge}
-                              </div>
-                              <div class="chat-last-message">${preview}</div>
-                            </div>
-                            <div class="chat-time">${time}</div>
-                          </div>
-                        `;
-          }
+                          <div class="chat-last-message">${preview}</div>
+                        </div>
+                        <div class="chat-time">${time}</div>
+                      </div>
+                    `;
         }
         chatListEl.innerHTML = html;
 
         document.querySelectorAll('.chat-item').forEach(el => {
           el.addEventListener('click', () => {
-            const type = el.dataset.type;
-            if (type === 'private') {
-              const uid = el.dataset.uid;
-              const name = el.dataset.name;
-              const username = el.dataset.username;
-              const photo = el.dataset.photo;
-              openPrivateChat(uid, name, username, photo);
-            } else if (type === 'group') {
-              const gid = el.dataset.gid;
-              const name = el.dataset.name;
-              openGroupChat(gid, name);
-            }
+            const uid = el.dataset.uid;
+            const name = el.dataset.name;
+            const username = el.dataset.username;
+            const photo = el.dataset.photo;
+            openPrivateChat(uid, name, username, photo);
           });
         });
       });
     }
 
     // ============================================================
-    // ОБНУЛЕНИЕ СЧЁТЧИКА (для личных чатов и групп)
+    // ОБНУЛЕНИЕ СЧЁТЧИКА
     // ============================================================
-    async function resetUnreadCounter(chatId, type = 'chats') {
+    async function resetUnreadCounter(chatId) {
       try {
-        const ref = doc(db, type, chatId);
+        const ref = doc(db, 'chats', chatId);
         const updateData = {};
         updateData[`unreadCounts.${currentUser.uid}`] = 0;
         await updateDoc(ref, updateData);
@@ -1320,11 +1259,10 @@
       if (chatUnsubscribe) { chatUnsubscribe();
         chatUnsubscribe = null; }
       currentChatUser = { uid: otherUid, name: otherName, username: otherUsername, photo: otherPhoto };
-      currentGroupId = null;
       const chatId = [currentUser.uid, otherUid].sort().join('_');
 
       // === ОБНУЛЯЕМ СЧЁТЧИК ===
-      resetUnreadCounter(chatId, 'chats');
+      resetUnreadCounter(chatId);
 
       render(`
             <div>
@@ -1370,91 +1308,22 @@
         markMessagesAsRead(chatId);
       });
 
-      document.getElementById('sendMessageBtn').addEventListener('click', () => sendMessage(chatId, 'private'));
+      document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
       document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter')
-          sendMessage(chatId, 'private'); });
-    }
-
-    // ============================================================
-    // ГРУППОВОЙ ЧАТ
-    // ============================================================
-    function openGroupChat(groupId, groupName) {
-      if (chatUnsubscribe) { chatUnsubscribe();
-        chatUnsubscribe = null; }
-      currentGroupId = groupId;
-      currentChatUser = null;
-
-      // === ОБНУЛЯЕМ СЧЁТЧИК В ГРУППЕ ===
-      resetUnreadCounter(groupId, 'groups');
-
-      render(`
-            <div>
-              <div class="chat-header">
-                <button class="round-btn-back" id="backFromChat">←</button>
-                <div id="chatAvatarContainer">${createAvatarHTML(groupId, groupName, null, 'small')}</div>
-                <div><h2>👥 ${groupName}</h2><span class="status">Группа</span></div>
-                <button class="round-btn-back" id="addMemberBtn" style="margin-left:auto;">➕</button>
-              </div>
-              <div class="chat-container">
-                <div class="chat-messages" id="chatMessages"><div style="text-align:center;color:#8a82a0;padding:20px;">Загрузка...</div></div>
-                <div class="chat-input-container"><input id="messageInput" placeholder="Сообщение..." /><button id="sendMessageBtn">📤</button></div>
-              </div>
-            </div>
-          `);
-
-      document.getElementById('backFromChat').addEventListener('click', () => {
-        if (chatUnsubscribe) { chatUnsubscribe();
-          chatUnsubscribe = null; }
-        loadChatList();
-        showMainScreen();
-      });
-
-      document.getElementById('addMemberBtn').addEventListener('click', () => {
-        showAddMemberModal(groupId);
-      });
-
-      const q = query(collection(db, 'groups', groupId, 'messages'), orderBy('createdAt'));
-      chatUnsubscribe = onSnapshot(q, (snapshot) => {
-        const div = document.getElementById('chatMessages');
-        if (!div) return;
-        let html = '';
-        snapshot.forEach(d => {
-          const data = d.data();
-          const isSent = data.senderId === currentUser.uid;
-          const senderName = data.senderName || 'Неизвестный';
-          const time = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString([],
-            { hour: '2-digit', minute: '2-digit' }) : '';
-          html += `
-                        <div class="message ${isSent ? 'sent' : 'received'}">
-                          <strong>${senderName}:</strong> ${data.text}
-                          <span class="time">${time}</span>
-                        </div>
-                      `;
-        });
-        div.innerHTML = html ||
-          '<div style="text-align:center;color:#8a82a0;padding:20px;">Нет сообщений. Напишите первым! 💬</div>';
-        div.scrollTop = div.scrollHeight;
-        markMessagesAsRead(groupId);
-      });
-
-      document.getElementById('sendMessageBtn').addEventListener('click', () => sendMessage(groupId, 'group'));
-      document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter')
-          sendMessage(groupId, 'group'); });
+          sendMessage(); });
     }
 
     // ============================================================
     // ОТПРАВКА СООБЩЕНИЯ
     // ============================================================
-    async function sendMessage(chatId, type) {
+    async function sendMessage() {
       const input = document.getElementById('messageInput');
       const text = input.value.trim();
-      if (!text) return;
-
-      const collectionName = type === 'group' ? 'groups' : 'chats';
-      const docRef = doc(db, collectionName, chatId);
+      if (!text || !currentChatUser) return;
+      const chatId = [currentUser.uid, currentChatUser.uid].sort().join('_');
 
       try {
-        await addDoc(collection(db, collectionName, chatId, 'messages'), {
+        await addDoc(collection(db, 'chats', chatId, 'messages'), {
           text,
           senderId: currentUser.uid,
           senderName: currentUserData.name,
@@ -1462,34 +1331,24 @@
           createdAt: serverTimestamp()
         });
 
+        const chatRef = doc(db, 'chats', chatId);
         const unreadCounts = {};
-        if (type === 'private') {
-          unreadCounts[currentChatUser.uid] = increment(1);
-        } else {
-          const groupDoc = await getDoc(docRef);
-          if (groupDoc.exists()) {
-            const members = groupDoc.data().members || [];
-            members.forEach(uid => {
-              if (uid !== currentUser.uid) {
-                unreadCounts[uid] = increment(1);
-              }
-            });
-          }
-        }
+        unreadCounts[currentChatUser.uid] = increment(1);
 
-        await setDoc(docRef, {
+        await setDoc(chatRef, {
+          members: [currentUser.uid, currentChatUser.uid],
           lastMessage: text,
           lastMessageTime: serverTimestamp(),
           lastSender: currentUser.uid,
-          unreadCounts: unreadCounts
+          unreadCounts: unreadCounts,
+          createdAt: serverTimestamp()
         }, { merge: true });
 
         input.value = '';
         loadChatList();
 
-        if (type === 'private' && currentChatUser) {
-          sendTelegramNotification(currentChatUser.uid, currentUserData.name, text);
-        }
+        // === ОТПРАВЛЯЕМ УВЕДОМЛЕНИЕ В TELEGRAM ===
+        sendTelegramNotification(currentChatUser.uid, currentUserData.name, text);
       } catch (e) { alert('Ошибка: ' + e.message); }
     }
 
@@ -1509,116 +1368,6 @@
         await Promise.all(batch);
         loadChatList();
       } catch (e) { console.error('Ошибка отметки прочитанных:', e); }
-    }
-
-    // ============================================================
-    // ДОБАВЛЕНИЕ УЧАСТНИКА В ГРУППУ (С ОБРАБОТКОЙ ОШИБОК)
-    // ============================================================
-    async function showAddMemberModal(groupId) {
-      const overlay = document.createElement('div');
-      overlay.className = 'modal-overlay';
-      overlay.innerHTML = `
-            <div class="modal-content">
-              <h3 style="margin-bottom:12px;">Добавить участника</h3>
-              <div id="userList" style="max-height:300px;overflow-y:auto;">
-                <div style="text-align:center;color:#8a82a0;padding:20px;">Загрузка...</div>
-              </div>
-              <button class="btn-secondary" style="margin-top:12px;" id="closeModal">Отмена</button>
-            </div>
-          `;
-      document.body.appendChild(overlay);
-
-      // === ОБРАБОТЧИК ОТМЕНЫ (должен быть сразу) ===
-      document.getElementById('closeModal').addEventListener('click', () => overlay.remove());
-
-      try {
-        const groupDoc = await getDoc(doc(db, 'groups', groupId));
-        const members = groupDoc.exists() ? groupDoc.data().members || [] : [];
-
-        const usersSnap = await getDocs(collection(db, 'users'));
-        let html = '';
-        usersSnap.forEach(d => {
-          const data = d.data();
-          if (data.uid === currentUser.uid) return;
-          if (members.includes(data.uid)) return;
-          html += `
-                <div class="user-item" data-uid="${data.uid}" data-name="${data.name}" style="cursor:pointer;">
-                  ${createAvatarHTML(data.uid, data.name, data.photo, 'small')}
-                  <div><strong>${data.name}</strong> <span style="color:#8a82a0;">@${data.username}</span></div>
-                </div>
-              `;
-        });
-
-        document.getElementById('userList').innerHTML = html ||
-          '<div style="text-align:center;color:#8a82a0;padding:20px;">Нет доступных пользователей</div>';
-
-        document.querySelectorAll('#userList .user-item').forEach(el => {
-          el.addEventListener('click', async () => {
-            const uid = el.dataset.uid;
-            const name = el.dataset.name;
-            if (confirm(`Добавить ${name} в группу?`)) {
-              try {
-                await updateDoc(doc(db, 'groups', groupId), {
-                  members: arrayUnion(uid)
-                });
-                overlay.remove();
-                loadChatList();
-                alert('✅ Участник добавлен!');
-              } catch (err) {
-                alert('❌ Ошибка: ' + err.message);
-              }
-            }
-          });
-        });
-      } catch (err) {
-        console.error('Ошибка загрузки списка пользователей:', err);
-        document.getElementById('userList').innerHTML = `
-              <div style="text-align:center;color:#ff6b6b;padding:20px;">
-                ❌ Ошибка загрузки: ${err.message}<br>
-                Проверьте правила Firestore
-              </div>
-            `;
-      }
-    }
-
-    // ============================================================
-    // СОЗДАНИЕ ГРУППЫ
-    // ============================================================
-    function showCreateGroupModal() {
-      const overlay = document.createElement('div');
-      overlay.className = 'modal-overlay';
-      overlay.innerHTML = `
-            <div class="modal-content">
-              <h3 style="margin-bottom:12px;">Создать группу</h3>
-              <input id="groupName" class="input-field" placeholder="Название группы" />
-              <button id="createGroupFinal" class="btn-primary" style="margin-top:8px;">🔒 Создать</button>
-              <button class="btn-secondary" style="margin-top:8px;" id="closeGroupModal">Отмена</button>
-            </div>
-          `;
-      document.body.appendChild(overlay);
-
-      document.getElementById('closeGroupModal').addEventListener('click', () => overlay.remove());
-
-      document.getElementById('createGroupFinal').addEventListener('click', async () => {
-        const name = document.getElementById('groupName').value.trim();
-        if (!name) { alert('Введите название'); return; }
-        try {
-          const groupRef = doc(collection(db, 'groups'));
-          await setDoc(groupRef, {
-            name,
-            photo: '',
-            owner: currentUser.uid,
-            members: [currentUser.uid],
-            createdAt: serverTimestamp()
-          });
-          overlay.remove();
-          alert('✅ Группа создана!');
-          loadChatList();
-          showMainScreen();
-        } catch (e) {
-          alert('❌ Ошибка: ' + e.message);
-        }
-      });
     }
 
     // ============================================================
@@ -1646,10 +1395,9 @@
     }
 
     // ============================================================
-    // СКАЧИВАНИЕ ПОЛНОГО ПРОЕКТА (А НЕ ТЕКУЩЕГО DOM)
+    // СКАЧИВАНИЕ ПОЛНОГО ПРОЕКТА
     // ============================================================
     function downloadFullProject() {
-      // Берём исходный HTML из текущего документа (он всегда полный)
       const fullHtml = document.documentElement.outerHTML;
       const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -1671,7 +1419,6 @@
       if (chatsUnsubscribe) { chatsUnsubscribe();
         chatsUnsubscribe = null; }
       currentChatUser = null;
-      currentGroupId = null;
 
       const appUrl = window.location.href;
       const isLight = document.body.classList.contains('light');
@@ -1813,7 +1560,6 @@
         document.getElementById('qrcode').innerHTML = '<p style="color:#8a82a0;font-size:12px;">QR-код не загрузился</p>';
       }
 
-      // СКАЧИВАНИЕ (исправлено — скачивается полный проект)
       document.getElementById('downloadAppBtn').addEventListener('click', downloadFullProject);
 
       if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
@@ -1891,8 +1637,8 @@
     // ЗАПУСК
     // ============================================================
     initTheme();
-    console.log('🚀 J Messenger запущен. Все ошибки исправлены!');
-    console.log('✅ Счётчик обнуляется, группы работают, аватарки загружаются.');
+    console.log('🚀 J Messenger запущен. Группы удалены. Только личные чаты.');
+    console.log('✅ Счётчик обнуляется, аватарки загружаются.');
   </script>
 </body>
 </html>
