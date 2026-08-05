@@ -28,7 +28,6 @@
   </script>
 
   <style>
-    /* ===== ВЕСЬ ТВОЙ CSS (БЕЗ ИЗМЕНЕНИЙ) ===== */
     * {
       margin: 0;
       padding: 0;
@@ -910,7 +909,6 @@
     function toggleTheme() {
       const isLight = document.body.classList.toggle('light');
       localStorage.setItem('theme', isLight ? 'light' : 'dark');
-
       const overlay = document.createElement('div');
       overlay.className = 'theme-overlay';
       overlay.innerHTML = `
@@ -920,13 +918,11 @@
             </div>
           `;
       document.body.appendChild(overlay);
-
       requestAnimationFrame(() => {
         overlay.classList.add('active');
         const icon = overlay.querySelector('.theme-icon');
         requestAnimationFrame(() => icon.classList.add('show'));
       });
-
       setTimeout(() => {
         const icon = overlay.querySelector('.theme-icon');
         icon.classList.remove('show');
@@ -1171,12 +1167,10 @@
       if (chatsUnsubscribe) { chatsUnsubscribe();
         chatsUnsubscribe = null; }
 
-      // Загружаем и личные чаты, и группы
       const q1 = query(collection(db, 'chats'), where('members', 'array-contains', currentUser.uid));
       const q2 = query(collection(db, 'groups'), where('members', 'array-contains', currentUser.uid));
 
       chatsUnsubscribe = onSnapshot(q1, async (snapshot1) => {
-        // Также подписываемся на группы отдельно
         const groupsSnap = await getDocs(q2);
 
         let allItems = [];
@@ -1230,7 +1224,6 @@
           });
         });
 
-        // === СОРТИРОВКА ===
         allItems.sort((a, b) => {
           if (!a.lastMessageTime) return 1;
           if (!b.lastMessageTime) return -1;
@@ -1285,7 +1278,6 @@
         }
         chatListEl.innerHTML = html;
 
-        // === ОБРАБОТЧИКИ КЛИКОВ ===
         document.querySelectorAll('.chat-item').forEach(el => {
           el.addEventListener('click', () => {
             const type = el.dataset.type;
@@ -1399,7 +1391,6 @@
         showMainScreen();
       });
 
-      // === КНОПКА ДОБАВИТЬ УЧАСТНИКА ===
       document.getElementById('addMemberBtn').addEventListener('click', () => {
         showAddMemberModal(groupId);
       });
@@ -1433,7 +1424,7 @@
     }
 
     // ============================================================
-    // ОТПРАВКА СООБЩЕНИЯ (ЛИЧНЫЙ / ГРУППОВОЙ)
+    // ОТПРАВКА СООБЩЕНИЯ
     // ============================================================
     async function sendMessage(chatId, type) {
       const input = document.getElementById('messageInput');
@@ -1456,7 +1447,6 @@
         if (type === 'private') {
           unreadCounts[currentChatUser.uid] = increment(1);
         } else {
-          // Для групп: увеличиваем счётчик для всех, кроме отправителя
           const groupDoc = await getDoc(docRef);
           if (groupDoc.exists()) {
             const members = groupDoc.data().members || [];
@@ -1478,7 +1468,6 @@
         input.value = '';
         loadChatList();
 
-        // Уведомление в Telegram (только для личных чатов)
         if (type === 'private' && currentChatUser) {
           sendTelegramNotification(currentChatUser.uid, currentUserData.name, text);
         }
@@ -1520,7 +1509,6 @@
           `;
       document.body.appendChild(overlay);
 
-      // Загружаем всех пользователей, кроме текущего и уже состоящих в группе
       const groupDoc = await getDoc(doc(db, 'groups', groupId));
       const members = groupDoc.exists() ? groupDoc.data().members || [] : [];
 
@@ -1860,4 +1848,4 @@
     console.log('🚀 J Messenger запущен. Бот активен! Группы и аватарки работают!');
   </script>
 </body>
-</html>
+  </html>
