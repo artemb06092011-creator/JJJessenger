@@ -13,7 +13,7 @@
   <meta property="og:type" content="website" />
   <meta name="robots" content="index, follow" />
 
-  <!-- ===== PWA ===== -->
+  <!-- ===== PWA (для iPhone и Android) ===== -->
   <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkogTWVzc2VuZ2VyIiwKICAic2hvcnRfbmFtZSI6ICJKIE1lc3NlbmdlciIsCiAgImRlc2NyaXB0aW9uIjogItCh0L7QtdC00LjQvdC10Y8g0LvRjtC00LXQuSDQvNCz0L3QvtCy0LXQvdC90L4iLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzFhMTUyOCIsCiAgInRoZW1lX2NvbG9yIjogIiMxYTE1MjgiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsPHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdib3g9JzAgMCAxMDAgMTAwJz48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9J2cnIHgxPScwJScgeTE9JzAlJyB4Mj0nMTAwJScgeTI9JzEwMCUnPjxzdG9wIG9mZnNldD0nMCUnIHN0eWxlPSdzdG9wLWNvbG9yOiUyMzhiNmZlMCcvPjxzdG9wIG9mZnNldD0nNTAlJyBzdHlsZT0nc3RvcC1jb2xvcjolMjNjMDg0ZmMnLz48c3RvcCBvZmZzZXQ9JzEwMCUnIHN0eWxlPSdzdG9wLWNvbG9yOiUyM2VjNDg5OScvPjwvbGluZWFyR3JhZGllbnQ+PHJhZGlhbEdyYWRpZW50IGlkPSdiJyBjeD0nMzAlJyBjeT0nMzAlJyByPSc3MCUnPjxzdG9wIG9mZnNldD0nMCUnIHN0eWxlPSdzdG9wLWNvbG9yOiUyM2ZmZmZmZjQwJy8+PHN0b3Agb2Zmc2V0PScxMDAlJyBzdHlsZT0nc3RvcC1jb2xvcjolMjMwMDAwMDAwMCcvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjInIGZpbGw9J3VybCgjZyknLz48cmVjdCB3aWR0aD0nMTAwJyBoZWlnaHQ9JzEwMCcgcng9JzIyJyBmaWxsPSd1cmwoI2IpJy8+PHRleHQgeD0nNTAnIHk9JzcyJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LWZhbWlseT0nQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtd2VpZ2h0PSc5MDAnIGZvbnQtc2l6ZT0nNTYnIGZpbGw9JyUyMzFhMWExYScgb3BhY2l0eT0nMC45JyBsZXR0ZXItc3BhY2luZz0nLTInPko8L3RleHQ+PC9zdmc+IiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQ==" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%238b6fe0'/><stop offset='50%25' style='stop-color:%23c084fc'/><stop offset='100%25' style='stop-color:%23ec4899'/></linearGradient><radialGradient id='b' cx='30%25' cy='30%25' r='70%25'><stop offset='0%25' style='stop-color:%23ffffff40'/><stop offset='100%25' style='stop-color:%2300000000'/></radialGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><rect width='100' height='100' rx='22' fill='url(%23b)'/><text x='50' y='72' text-anchor='middle' font-family='Arial, sans-serif' font-weight='900' font-size='56' fill='%231a1a1a' opacity='0.9' letter-spacing='-2'>J</text></svg>">
 
@@ -839,6 +839,9 @@
   </div>
 
   <script type="module">
+    // ============================================================
+    // ВЕСЬ ОСНОВНОЙ КОД (Firebase, чаты, аватарки, тема, настройки)
+    // ============================================================
     import { initializeApp } from 'firebase/app';
     import {
       getAuth,
@@ -1366,24 +1369,61 @@
     // ============================================================
     // БРАУЗЕРНЫЕ УВЕДОМЛЕНИЯ (СО ЗВУКОМ)
     // ============================================================
-    async function sendBrowserNotificationToReceiver(receiverUid, senderName, messageText) {
-      try {
-        const receiverDoc = await getDoc(doc(db, 'users', receiverUid));
-        if (!receiverDoc.exists()) return;
-        const receiverData = receiverDoc.data();
+    // ============================================================
+// БРАУЗЕРНЫЕ УВЕДОМЛЕНИЯ (ИСПРАВЛЕНЫ)
+// ============================================================
+async function sendBrowserNotificationToReceiver(receiverUid, senderName, messageText) {
+  try {
+    // 1. Получаем данные ПОЛУЧАТЕЛЯ (того, кому пишут)
+    const receiverDoc = await getDoc(doc(db, 'users', receiverUid));
+    if (!receiverDoc.exists()) {
+      console.log('❌ Получатель не найден в Firestore');
+      return;
+    }
+    const receiverData = receiverDoc.data();
+    console.log(`📩 Отправляем уведомление для ${receiverData.name}`);
 
-        // Проверяем, что уведомления включены
-        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    // 2. Проверяем, что уведомления вообще разрешены
+    if (!('Notification' in window)) {
+      console.log('❌ Браузер не поддерживает уведомления');
+      return;
+    }
 
-        const shortText = messageText.length > 60 ? messageText.slice(0, 60) + '...' : messageText;
+    if (Notification.permission !== 'granted') {
+      console.log('❌ Уведомления запрещены. Permission:', Notification.permission);
+      return;
+    }
 
-        new Notification(`📩 ${receiverData.name || 'Новое сообщение'}`, {
-          body: `${senderName}: ${shortText}`,
-          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💬</text></svg>',
-          vibrate: [200, 100, 200],
-          requireInteraction: true,
-          tag: 'j-messenger-notification'
-        });
+    // 3. Отправляем уведомление
+    const shortText = messageText.length > 60 ? messageText.slice(0, 60) + '...' : messageText;
+
+    const notification = new Notification(`📩 ${receiverData.name || 'Новое сообщение'}`, {
+      body: `${senderName}: ${shortText}`,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💬</text></svg>',
+      vibrate: [200, 100, 200],
+      requireInteraction: true,
+      tag: 'j-messenger-notification'
+    });
+
+    console.log('✅ Уведомление отправлено!');
+
+    // 4. Звук
+    try {
+      const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
+      audio.volume = 0.5;
+      await audio.play();
+      console.log('🔔 Звук воспроизведён');
+    } catch (e) {
+      console.log('🔇 Звук не загрузился:', e.message);
+    }
+
+    // 5. Автозакрытие через 10 секунд
+    setTimeout(() => notification.close(), 10000);
+
+  } catch (e) {
+    console.error('❌ Ошибка уведомления:', e);
+  }
+}
 
         // ЗВУК
         try {
@@ -1489,7 +1529,7 @@
               <div class="settings-card download-section">
                 <h3>📱 Поделиться приложением</h3>
                 <div id="qrcode"></div>
-                <button id="downloadAppBtn" class="download-btn">Кнопка Недоступна⛔️</button>
+                <button id="downloadAppBtn" class="download-btn">📥 Скачать J Messenger</button>
                 <div class="install-banner">
                   📲 Отсканируйте QR-код на телефоне<br>
                   или скачайте файл на компьютер
@@ -1685,4 +1725,4 @@
     console.log('🚀 J Messenger запущен. Уведомления работают!');
   </script>
 </body>
-</html>
+  </html>
