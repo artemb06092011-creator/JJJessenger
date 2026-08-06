@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+  // ===== ПРИНУДИТЕЛЬНЫЙ ВЫХОД =====
+setTimeout(() => {
+  const loader = document.querySelector('.loader-container');
+  if (loader && !document.querySelector('.flex-center')) {
+    loader.innerHTML = `
+      <div style="text-align:center;padding:20px;">
+        <p>⏳ Что-то пошло не так...</p>
+        <button onclick="location.reload()" class="btn-primary">🔄 Перезагрузить</button>
+        <button onclick="firebase.auth().signOut().then(()=>location.reload())" class="btn-secondary" style="margin-top:10px;">🚪 Выйти и зайти заново</button>
+      </div>
+    `;
+  }
+}, 5000);
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
   <title>J Messenger</title>
